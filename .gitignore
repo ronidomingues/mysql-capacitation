@@ -1,0 +1,102 @@
+# ==============================================================
+# .gitignore — Capacitação de MySQL
+# --------------------------------------------------------------
+# Regra do Git: quando dois padrões batem no mesmo arquivo,
+# vence o ÚLTIMO. Por isso as exceções (!) vêm sempre logo
+# depois do padrão que elas abrem.
+# ==============================================================
+
+
+# ==============================================================
+# 1. SEGREDOS  ← nunca, em hipótese alguma, versionar
+# ==============================================================
+# O .env guarda a senha do root do MySQL e o token do ngrok.
+# Este repositório é público: o que entrar aqui entra para sempre
+# no histórico, mesmo que seja apagado num commit posterior.
+.env
+.env.*
+# O modelo SEM segredos, esse sim vai para o repositório:
+!.env.example
+
+# Chaves e certificados
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+
+
+# ==============================================================
+# 2. LaTeX — arquivos auxiliares da compilação
+# ==============================================================
+*.aux
+*.bbl
+*.blg
+*.brf
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.toc
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.lol
+*.fls
+*.fdb_latexmk
+*.synctex
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+*.xdv
+*.upa
+*.upb
+arara.log
+
+# Beamer (slides)
+*.nav
+*.snm
+*.vrb
+
+# Saídas intermediárias (o PDF final NÃO entra aqui: ele é o
+# produto publicado no GitHub Pages e é versionado de propósito)
+*.dvi
+*.ps
+*.eps
+output/
+build/
+
+# Pasta de staging do GitHub Pages, montada pelo workflow a cada build
+_site/
+
+# Clone temporário do repositório de publicação (andradasdev/sql).
+# É um repositório Git próprio: se entrasse aqui, o Git registraria um
+# gitlink (submódulo sem .gitmodules) e a bagunça seria difícil de desfazer.
+temp/
+
+
+# ==============================================================
+# 3. Python (scripts auxiliares do workflow)
+# ==============================================================
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+
+# ==============================================================
+# 4. Editores e sistemas operacionais
+# ==============================================================
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,187 @@
+name: Compilar LaTeX e publicar em andradasdev/sql
+
+# ============================================================
+# Este repositório é o de CÓDIGO. Ele não publica site nenhum.
+#
+#   1. compila todo .tex de docs/ que seja documento completo;
+#   2. verifica se o PDF saiu íntegro;
+#   3. commita os PDFs de volta AQUI (para quem clona ter o guia);
+#   4. envia os artefatos de publicação para andradasdev/sql,
+#      onde um segundo workflow os publica no GitHub Pages.
+#
+# PRÉ-REQUISITO: o secret PUBLISH_TOKEN precisa existir neste
+# repositório. O passo a passo de como criá-lo está em:
+#   https://github.com/andradasdev/sql/blob/main/documentacao/autenticacao-github-actions.md
+# ============================================================
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**.pdf'   # não re-disparar pelo commit de PDF feito pelo bot
+  workflow_dispatch:
+
+permissions:
+  contents: write   # commitar os PDFs compilados NESTE repositório
+
+# Duas pushes seguidas não podem publicar ao mesmo tempo, senão uma
+# sobrescreve a outra e o "git push" dá conflito.
+concurrency:
+  group: publicacao-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Repositório de publicação e o que exatamente vai para ele.
+  REPO_PUBLICACAO: andradasdev/sql
+  # O Apêndice B do guia lê ../materials/liga.sql via \lstinputlisting.
+  # Sem isto, um runner em modo "paranoid" recusaria ler fora de docs/.
+  openin_any: a
+
+jobs:
+  build-and-publish:
+    # Impede laço infinito: o commit de PDF do bot não dispara nova execução.
+    if: ${{ github.event.head_commit.author.name != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # ------------------------------------------------------------
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # necessário para o rebase antes do push
+
+      # ------------------------------------------------------------
+      # Lista enxuta, derivada dos arquivos que os documentos realmente
+      # carregam. texlive-full (~5 GB) levava de 10 a 20 min por execução.
+      #   texlive-publishers      -> abntex2.cls e abntex2-alf.bst
+      #   texlive-xetex           -> xelatex (a Lexend usa fontspec)
+      #   texlive-latex-extra     -> tcolorbox, listings, multirow
+      #   texlive-lang-portuguese -> hifenização pt-BR
+      #   fonts-lmodern           -> monoespaçada dos blocos de código
+      - name: Instalar LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-base \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-pictures \
+            texlive-publishers \
+            texlive-xetex \
+            texlive-lang-portuguese \
+            fonts-lmodern \
+            latexmk
+
+      # ------------------------------------------------------------
+      # Compila apenas documentos completos. Arquivos sem \documentclass
+      # (inclusões de pages/) são pulados em vez de derrubar o job.
+      - name: Compilar os documentos
+        working-directory: docs
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          compilados=0
+          for texfile in *.tex; do
+            if ! grep -q '\\documentclass' "$texfile"; then
+              echo "· pulando $texfile (não é um documento completo)"
+              continue
+            fi
+            echo "▸ compilando $texfile"
+            latexmk -xelatex -interaction=nonstopmode -halt-on-error "$texfile"
+            compilados=$((compilados + 1))
+          done
+          if [ "$compilados" -eq 0 ]; then
+            echo "::error::Nenhum documento .tex foi compilado em docs/"
+            exit 1
+          fi
+          echo "$compilados documento(s) compilado(s)"
+
+      # ------------------------------------------------------------
+      # Um PDF pode sair com exit 0 e ainda estar quebrado: citações não
+      # resolvidas viram "[?]" e referências cruzadas viram "??".
+      - name: Verificar a integridade dos PDFs
+        working-directory: docs
+        run: |
+          set -euo pipefail
+          falhou=0
+          for log in *.log; do
+            doc="${log%.log}"
+            [ -f "$doc.pdf" ] || { echo "::error::$doc.pdf não foi gerado"; falhou=1; continue; }
+            for padrao in 'Citation .* undefined' 'Reference .* undefined'; do
+              n=$(grep -cE "$padrao" "$log" || true)
+              if [ "$n" -gt 0 ]; then
+                echo "::error::$doc: $n ocorrência(s) de '$padrao'"
+                falhou=1
+              fi
+            done
+            echo "✓ $doc.pdf íntegro"
+          done
+          [ "$falhou" -eq 0 ]
+
+      # ------------------------------------------------------------
+      - name: Commitar os PDFs neste repositório
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/*.pdf
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração de PDF para commitar"
+            exit 0
+          fi
+          git commit -m "docs: atualizar PDFs compilados [skip ci]"
+          # Alguém pode ter feito push enquanto o LaTeX compilava.
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      # ============================================================
+      # ENVIO PARA O REPOSITÓRIO DE PUBLICAÇÃO
+      # ============================================================
+      # Só o que o público precisa: a apostila, os slides de projeção e
+      # o script da aula. A versão do apresentador (apresentacao_notes.pdf)
+      # NÃO vai — ela contém o roteiro de condução da aula.
+      - name: Verificar se o token de publicação existe
+        env:
+          # Nunca interpole um secret direto no corpo do script: além de
+          # quebrar com caracteres especiais, o valor passa a fazer parte
+          # do comando. Passe por variável de ambiente e teste a variável.
+          PUBLISH_TOKEN: ${{ secrets.SQL_ANDRADASDEV }}
+        run: |
+          if [ -z "${PUBLISH_TOKEN}" ]; then
+            echo "::error::O secret PUBLISH_TOKEN não está configurado neste repositório."
+            echo "::error::Passo a passo: https://github.com/${REPO_PUBLICACAO}/blob/main/documentacao/autenticacao-github-actions.md"
+            exit 1
+          fi
+          echo "PUBLISH_TOKEN presente"
+
+      - name: Enviar artefatos para ${{ env.REPO_PUBLICACAO }}
+        env:
+          PUBLISH_TOKEN: ${{ secrets.SQL_ANDRADASDEV }}
+        run: |
+          set -euo pipefail
+
+          # O token entra só na URL do remote, e o Actions mascara o valor
+          # dele em qualquer saída de log.
+          git clone --depth 1 \
+            "https://x-access-token:${PUBLISH_TOKEN}@github.com/${REPO_PUBLICACAO}.git" \
+            /tmp/publicacao
+
+          mkdir -p /tmp/publicacao/docs /tmp/publicacao/materials
+          cp docs/guia.pdf          /tmp/publicacao/docs/
+          cp docs/apresentacao.pdf  /tmp/publicacao/docs/
+          cp materials/liga.sql     /tmp/publicacao/materials/
+
+          cd /tmp/publicacao
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/guia.pdf docs/apresentacao.pdf materials/liga.sql
+
+          if git diff --cached --quiet; then
+            echo "Artefatos idênticos aos publicados — nada a enviar"
+            exit 0
+          fi
+
+          git commit -m "publicar: artefatos de ${GITHUB_REPOSITORY}@${GITHUB_SHA:0:7}"
+          git push origin HEAD:main
+          echo "Artefatos enviados. O workflow de ${REPO_PUBLICACAO} publica o site."
