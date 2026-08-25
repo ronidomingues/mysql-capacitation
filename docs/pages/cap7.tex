@@ -1,0 +1,73 @@
+\chapter{Erros comuns}
+\label{cap:erros}
+
+A tabela a seguir reúne as mensagens que mais aparecem para quem está
+começando, com a causa e a correção de cada uma. Vale a pena consultá-la antes
+de pedir ajuda: quase todo erro de aula está aqui.
+
+\begin{longtable}{@{}p{4.6cm}p{4.4cm}p{4.6cm}@{}}
+\caption{Erros frequentes, causas e correções}
+\label{tab:erros} \\
+\toprule
+\textbf{Erro ou mensagem} & \textbf{Causa} & \textbf{Correção} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{@{}l}{\footnotesize\emph{Tabela~\ref{tab:erros} --- continuação}} \\
+\toprule
+\textbf{Erro ou mensagem} & \textbf{Causa} & \textbf{Correção} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\footnotesize\comando{ERROR 1046: No database selected}
+  & \footnotesize Faltou escolher o banco
+  & \footnotesize \comando{USE liga\_SEUNOME;} ou clicar no banco na lateral \\
+\addlinespace
+\footnotesize\comando{ERROR 1044: Access denied to database}
+  & \footnotesize Nome fora do padrão \comando{liga\_*}, ou tentativa de abrir o banco \comando{cap}
+  & \footnotesize Use \comando{liga\_SEUNOME}: underscore, minúsculas, sem acento \\
+\addlinespace
+\footnotesize\comando{ERROR 1050: Table already exists}
+  & \footnotesize O \comando{CREATE TABLE} foi executado duas vezes
+  & \footnotesize \comando{DROP TABLE membro;} antes, ou rode o script do Apêndice~\ref{ap:script} inteiro \\
+\addlinespace
+\footnotesize\comando{ERROR 1062: Duplicate entry}
+  & \footnotesize Violou \comando{PRIMARY KEY} ou \comando{UNIQUE}
+  & \footnotesize O valor já existe; use outro ou faça \comando{UPDATE} \\
+\addlinespace
+\footnotesize\comando{ERROR 1452: foreign key constraint fails}
+  & \footnotesize Chave estrangeira apontando para um \comando{id} inexistente
+  & \footnotesize Insira primeiro na tabela-pai (\comando{curso}) \\
+\addlinespace
+\footnotesize\comando{ERROR 1452} ao apagar da tabela-pai
+  & \footnotesize Há filhos referenciando aquela linha
+  & \footnotesize Trate os filhos antes, ou defina \comando{ON DELETE} \\
+\addlinespace
+\footnotesize\comando{ERROR 1052: Column is ambiguous}
+  & \footnotesize Duas tabelas com coluna de mesmo nome
+  & \footnotesize Qualifique: \comando{m.nome}, \comando{c.nome} \\
+\addlinespace
+\footnotesize \comando{UPDATE} ou \comando{DELETE} afetou a tabela toda
+  & \footnotesize \comando{WHERE} esquecido
+  & \footnotesize Sempre testar com \comando{SELECT} antes (Seção~\ref{sec:where-ausente}) \\
+\addlinespace
+\footnotesize \comando{WHERE campo = NULL} não retorna nada
+  & \footnotesize \comando{NULL} não é comparável com \comando{=}
+  & \footnotesize \comando{WHERE campo IS NULL} \\
+\addlinespace
+\footnotesize Acentuação vira caractere estranho
+  & \footnotesize Conjunto de caracteres errado (\comando{latin1})
+  & \footnotesize Crie o banco com \comando{utf8mb4} \\
+\addlinespace
+\footnotesize Datas não filtram direito
+  & \footnotesize Formato ou tipo errado
+  & \footnotesize Use \comando{DATE}/\comando{DATETIME} e \comando{'AAAA-MM-DD'} \\
+\addlinespace
+\footnotesize Valores monetários erram centavos
+  & \footnotesize Coluna declarada como \comando{FLOAT}
+  & \footnotesize Use \comando{DECIMAL(10,2)} \\
+\addlinespace
+\footnotesize O comando não executa
+  & \footnotesize Falta o ponto e vírgula final
+  & \footnotesize Termine todo comando com \comando{;} \\
+\end{longtable}

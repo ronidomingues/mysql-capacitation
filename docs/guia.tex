@@ -1,0 +1,71 @@
+% !TeX program = xelatex
+% !TeX encoding = UTF-8
+% !TeX spellcheck = pt_BR
+% ----------------------------------------------------------------------
+% Guia Prático para a Capacitação de MySQL
+% Compilar com XeLaTeX (a fonte Lexend é carregada localmente):
+%     latexmk -xelatex guia.tex
+% ----------------------------------------------------------------------
+
+\documentclass[12pt, a4paper, openright, oneside, brazil]{abntex2}
+
+\input{pages/preambulo}
+\input{pages/config}
+
+% --- Informações da capa e da folha de rosto --------------------------
+\titulo{Fundamentos do MySQL e Projetos de Bancos de Dados}
+\autor{Ronivaldo Domingues de Andrade}
+\local{Rio de Janeiro - RJ}
+\data{2026}
+\tipotrabalho{Guia Prático para Capacitação}
+\preambulo{Guia prático da capacitação de MySQL e SQL, com duração de duas
+horas, elaborado para os membros da liga acadêmica.}
+
+\begin{document}
+\selectlanguage{brazil}
+
+% --- Elementos pré-textuais -------------------------------------------
+\imprimircapa
+\imprimirfolhaderosto
+
+\newpage
+\listoftables
+
+\begin{siglas}
+  \item[SGBD] Sistema de Gerenciamento de Banco de Dados
+  \item[DBMS] \emph{Database Management System} (o mesmo que SGBD, em inglês)
+  \item[RDBMS] \emph{Relational Database Management System}, SGBD relacional
+  \item[SQL] \emph{Structured Query Language}, linguagem de consulta estruturada
+  \item[DDL] \emph{Data Definition Language}, subconjunto do SQL que define estruturas
+  \item[DML] \emph{Data Manipulation Language}, subconjunto do SQL que manipula dados
+  \item[DQL] \emph{Data Query Language}, subconjunto do SQL que consulta dados
+  \item[DCL] \emph{Data Control Language}, subconjunto do SQL que controla permissões
+  \item[TCL] \emph{Transaction Control Language}, subconjunto do SQL que controla transações
+  \item[CRUD] \emph{Create, Read, Update, Delete}, as quatro operações básicas sobre dados
+  \item[PK] \emph{Primary Key}, chave primária
+  \item[FK] \emph{Foreign Key}, chave estrangeira
+  \item[InnoDB] Motor de armazenamento padrão do MySQL, com suporte a chaves estrangeiras
+  \item[LTS] \emph{Long Term Support}, versão com suporte de longo prazo
+  \item[ORM] \emph{Object-Relational Mapping}, mapeamento objeto-relacional
+\end{siglas}
+
+\tableofcontents
+
+% --- Capítulos ---------------------------------------------------------
+\input{pages/cap1}          % Introdução e conceitos-base
+\input{pages/cap2}          % MySQL
+\input{pages/cap3}          % Clientes SQL
+\input{pages/cap4}          % SQL: fundamentos e DDL
+\input{pages/cap5}          % CRUD
+\input{pages/cap6}          % Relacionamentos e JOIN
+\input{pages/cap7}          % Erros comuns
+\input{pages/conclusao}     % Conclusão e próximos passos
+
+% --- Referências -------------------------------------------------------
+\bibliographystyle{abntex2-alf}
+\bibliography{pages/references}
+
+% --- Elementos pós-textuais -------------------------------------------
+\input{pages/apendices}
+
+\end{document}

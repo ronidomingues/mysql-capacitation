@@ -1,0 +1,141 @@
+\chapter{Introdução}
+
+Todo sistema que você vai construir na liga --- um cadastro de membros, um
+aplicativo de projetos, um painel de pesquisa --- precisa \textbf{guardar dados
+e recuperá-los depois}. Esta capacitação é sobre a ferramenta padrão da
+indústria para isso: um banco de dados relacional (MySQL) operado pela
+linguagem SQL.
+
+Em duas horas não é possível formar um administrador de banco de dados. É
+possível, sim, sair daqui \textbf{criando uma tabela, inserindo dados,
+consultando com filtro e relacionando duas tabelas} --- exatamente o mínimo
+necessário para o primeiro projeto real.
+
+\section{Objetivos de aprendizagem}
+
+Ao final da capacitação, o participante deve ser capaz de:
+
+\begin{enumerate}
+    \item Explicar o que é um SGBD e o que significa ``relacional''.
+    \item Conectar-se a um servidor MySQL usando um cliente SQL.
+    \item Criar um banco e uma tabela com tipos, chave primária e restrições
+          adequadas.
+    \item Executar as quatro operações do CRUD com \comando{INSERT},
+          \comando{SELECT}, \comando{UPDATE} e \comando{DELETE}.
+    \item Filtrar e ordenar resultados com \comando{WHERE}, \comando{ORDER BY}
+          e \comando{LIMIT}.
+    \item Relacionar duas tabelas com chave estrangeira e consultá-las com
+          \comando{JOIN}.
+\end{enumerate}
+
+\section{O que não entra nesta capacitação}
+
+Dito explicitamente para não gerar expectativa errada --- cada item destes é
+uma capacitação inteira por si só:
+
+\begin{itemize}
+    \item Docker e containers (usados aqui apenas como meio de subir o ambiente).
+    \item Normalização formal (1FN, 2FN, 3FN) e modelagem entidade-relacio\-namento completa.
+    \item Índices, planos de execução e otimização de desempenho.
+    \item Transações, \emph{views}, \emph{procedures}, \emph{triggers}, backup e replicação.
+    \item Segurança, gestão de usuários e privilégios além do básico.
+    \item Bancos não relacionais (MongoDB, Redis e afins).
+\end{itemize}
+
+\section{Roteiro de duas horas}
+\label{sec:roteiro}
+
+A Tabela~\ref{tab:roteiro} é o contrato de tempo da capacitação. Cada bloco tem
+um tempo fechado. Se um bloco estourar, o corte sai do conteúdo marcado como
+bônus (Seção~\ref{sec:agregacao}), nunca do bloco de \comando{JOIN}.
+
+\begin{table}[H]
+\centering
+\caption{Distribuição dos 120 minutos da capacitação}
+\label{tab:roteiro}
+\footnotesize
+\begin{tabular}{@{}clcc@{}}
+\toprule
+\textbf{\#} & \textbf{Bloco} & \textbf{Início} & \textbf{Duração} \\
+\midrule
+0 & Abertura, objetivos e escopo                       & 00:00 & 5 min  \\
+1 & Conceitos-base: dado, banco, SGBD, relacional, SQL & 00:05 & 15 min \\
+2 & Ambiente e cliente SQL: todos conectados           & 00:20 & 15 min \\
+3 & DDL: banco, tipos, tabela e chave primária         & 00:35 & 20 min \\
+-- & \emph{Pausa}                                      & 00:55 & 5 min  \\
+4 & \comando{INSERT} e \comando{SELECT} com filtros    & 01:00 & 25 min \\
+5 & \comando{UPDATE}, \comando{DELETE} e o \comando{WHERE} ausente & 01:25 & 10 min \\
+6 & Chave estrangeira e \comando{JOIN}                 & 01:35 & 20 min \\
+7 & Erros comuns, próximos passos e dúvidas            & 01:55 & 5 min  \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{Total}} & \textbf{120 min} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{dica}[Regra prática do instrutor]
+Os blocos 3 a 6 são de prática. Fale no máximo um terço do tempo do bloco e
+deixe dois terços para os participantes digitarem. Não avance enquanto a
+maioria não tiver o resultado na tela.
+\end{dica}
+
+\section{Conceitos-base}
+\label{sec:conceitos}
+
+\subsection{Dado, informação e banco de dados}
+
+\textbf{Dado} é um valor bruto: \comando{"Ana"}, \comando{2024-03-11},
+\comando{7}. Sozinho, ele não diz nada. \textbf{Informação} é o dado dentro de
+um contexto: \emph{``Ana ingressou na liga em 11/03/2024 e está no 7º
+período''}. Um \textbf{banco de dados} é uma coleção organizada de dados,
+guardada de forma persistente e estruturada para ser consultada.
+
+\subsection{SGBD: o software servidor}
+
+O \textbf{SGBD} (Sistema de Gerenciamento de Banco de Dados; em inglês,
+\emph{DBMS}) é o software servidor que cuida desse banco. É ele quem de fato:
+
+\begin{itemize}
+    \item grava e lê os dados em disco;
+    \item garante a integridade, não deixando entrar dado que viole as regras definidas;
+    \item controla o acesso concorrente, permitindo que várias pessoas escrevam
+          ao mesmo tempo sem corromper nada;
+    \item controla as permissões dos usuários.
+\end{itemize}
+
+\begin{aviso}[Correção de um erro comum]
+SQL \textbf{não} é a única forma de conversar com um SGBD. A comunicação real
+acontece por um \textbf{protocolo de rede binário} --- o MySQL escuta na porta
+3306. O SQL é a linguagem que trafega dentro desse protocolo: é a interface
+padrão e dominante, mas não a única. O MySQL também expõe o \emph{X DevAPI /
+Document Store}, uma API de CRUD sem SQL. E, quando se usa um ORM (Prisma,
+Eloquent, Hibernate, SQLAlchemy), escrevem-se objetos --- é o ORM que traduz
+aquilo para SQL antes de enviar.
+\end{aviso}
+
+\subsection{O modelo relacional}
+
+O \textbf{modelo relacional}, proposto por Edgar F. Codd em 1970
+\cite{codd1970}, é a ideia central: os dados são organizados em
+\textbf{tabelas} (relações). Cada \textbf{linha} (registro ou tupla) é uma
+ocorrência do mundo real; cada \textbf{coluna} (campo ou atributo) é uma
+característica dela, com um \textbf{tipo} fixo. Tabelas se ligam a outras
+tabelas por meio de \textbf{chaves} --- daí o nome ``relacional''.
+
+\begin{lstlisting}[style=base,caption={Anatomia de uma tabela},label={lst:anatomia}]
+TABELA membro
++----+--------------+--------------------+---------+
+| id | nome         | email              | periodo |  <- colunas (com tipo)
++----+--------------+--------------------+---------+
+|  1 | Ana Souza    | ana@liga.edu.br    |       7 |  <- linha (registro)
+|  2 | Bruno Lima   | bruno@liga.edu.br  |       3 |
++----+--------------+--------------------+---------+
+  ^
+  chave primaria: identifica cada linha de forma unica
+\end{lstlisting}
+
+\begin{conceito}[SGBD relacional]
+Um \textbf{SGBD relacional} é um SGBD que implementa esse modelo --- é o que a
+sigla \textbf{RDBMS} significa. MySQL, PostgreSQL, SQL Server, Oracle Database
+e SQLite são todos RDBMS.
+\end{conceito}

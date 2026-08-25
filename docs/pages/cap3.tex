@@ -1,0 +1,112 @@
+\chapter{Clientes SQL}
+
+Um \textbf{cliente SQL} é o programa pelo qual \emph{você} conversa com o
+servidor: ele abre a conexão, envia os comandos SQL e exibe o resultado em
+tabela. O servidor (MySQL) e o cliente são programas separados --- podem,
+inclusive, estar em máquinas diferentes.
+
+\section{Panorama de clientes}
+
+\begin{table}[H]
+\centering
+\caption{Clientes SQL mais comuns para MySQL}
+\label{tab:clientes}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lllX@{}}
+\toprule
+\textbf{Cliente} & \textbf{Tipo} & \textbf{Plataformas} & \textbf{Custo} \\
+\midrule
+\comando{mysql} (CLI) & Terminal & Win / Linux / macOS & Gratuito, vem com o servidor \\
+MySQL Workbench       & Desktop  & Win / Linux / macOS & Gratuito (GPL) \\
+DBeaver               & Desktop  & Win / Linux / macOS & \emph{Community} gratuito; PRO pago \\
+HeidiSQL              & Desktop  & Windows             & Gratuito \\
+phpMyAdmin            & \textbf{Web} & navegador       & Gratuito \\
+TablePlus             & Desktop  & Win / Linux / macOS & Versão gratuita limitada; pago \\
+DBVisualizer          & Desktop  & Win / Linux / macOS & Versão gratuita limitada; Pro pago \\
+Navicat               & Desktop  & Win / Linux / macOS & \textbf{Pago} (apenas teste grátis) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{aviso}[Correção de um erro comum]
+Navicat, DBVisualizer e SQLPro Studio \textbf{não são gratuitos}: são produtos
+comerciais, com versão de teste ou edição gratuita limitada. Não os recomende
+como ``gratuitos''.
+\end{aviso}
+
+\section{phpMyAdmin}
+
+O phpMyAdmin \textbf{não é um programa que se instala no sistema operacional}
+como os outros da lista: é uma \textbf{aplicação web escrita em PHP} que roda
+num servidor web e é acessada pelo \textbf{navegador}. É por isso que ele
+aparece junto do Apache e do PHP em pacotes como o XAMPP.
+
+Ele foi escolhido para esta capacitação por três motivos: não exige instalação
+na máquina do participante (basta uma URL), mostra a estrutura do banco
+visualmente enquanto se aprende, e tem uma aba \textbf{SQL} onde os comandos
+são digitados de verdade.
+
+\section{Conectando}
+\label{sec:conectando}
+
+Nesta capacitação \textbf{ninguém instala nada}. O instrutor roda o MySQL e o
+phpMyAdmin na máquina dele e publica apenas o phpMyAdmin na internet por um
+túnel. O acesso é por uma URL, no navegador.
+
+\begin{table}[H]
+\centering
+\caption{Dados de acesso da turma}
+\label{tab:acesso}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Campo} & \textbf{Valor} \\
+\midrule
+URL do phpMyAdmin & Ditada pelo instrutor no início da aula \\
+Usuário           & \comando{aluno} \\
+Senha             & \comando{aluno} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{dica}[Tela de aviso do túnel]
+Na primeira visita, o serviço de túnel mostra uma página de aviso antes do
+site. Clique em \emph{``Visit Site''} uma vez e siga; ela não aparece de novo.
+\end{dica}
+
+\subsection{Cada participante tem o seu próprio banco}
+\label{sec:banco-proprio}
+
+O servidor é um só, compartilhado pela turma inteira. Se todos trabalhassem no
+mesmo banco, o \comando{CREATE TABLE} do segundo participante já falharia com
+\comando{ERROR 1050: Table already exists}, e um \comando{DELETE} de qualquer
+um apagaria o dado de todos.
+
+Por isso \textbf{cada participante cria o próprio banco}, chamado
+\comando{liga\_} seguido do seu primeiro nome:
+
+\begin{center}
+\comando{liga\_ana} \quad \comando{liga\_bruno} \quad \comando{liga\_carla}
+\quad \comando{liga\_diego}
+\end{center}
+
+\begin{aviso}[Regra do nome]
+Apenas letras minúsculas, sem acento e sem espaço: \comando{liga\_joao}, nunca
+\comando{liga\_João} nem \comando{liga\_joao silva}.
+
+Onde este guia escrever \comando{liga\_SEUNOME}, use o seu. O login
+\comando{aluno} só tem permissão em bancos que comecem com \comando{liga\_};
+qualquer outro nome retorna \comando{ERROR 1044: Access denied}. Isso é
+proposital: protege o banco de demonstração do instrutor (\comando{cap}) e os
+dados internos do MySQL.
+\end{aviso}
+
+\subsection{Teste de sanidade}
+
+Abra a aba \textbf{SQL} e execute:
+
+\begin{sqlcode}
+SELECT VERSION(), NOW();
+\end{sqlcode}
+
+Se voltou a versão do servidor e a data e hora, está tudo certo.

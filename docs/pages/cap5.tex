@@ -1,0 +1,174 @@
+\chapter{CRUD: manipulando os dados}
+\label{cap:crud}
+
+\textbf{CRUD} é o acrônimo das quatro operações básicas sobre dados. Todo
+sistema que você escrever na vida faz essas quatro coisas.
+
+\begin{table}[H]
+\centering
+\caption{As quatro operações do CRUD}
+\label{tab:crud}
+\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{CRUD} & \textbf{Comando SQL} & \textbf{Categoria} \\
+\midrule
+\textbf{C}reate & \comando{INSERT} & DML \\
+\textbf{R}ead   & \comando{SELECT} & DQL \\
+\textbf{U}pdate & \comando{UPDATE} & DML \\
+\textbf{D}elete & \comando{DELETE} & DML \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Create: \comando{INSERT}}
+
+\begin{sqlcode}
+-- Uma linha
+INSERT INTO curso (nome) VALUES ('Engenharia de Software');
+
+-- Varias linhas de uma vez (mais eficiente)
+INSERT INTO curso (nome) VALUES
+  ('Ciencia da Computacao'),
+  ('Sistemas de Informacao'),
+  ('Engenharia de Producao');
+
+INSERT INTO membro (nome, email, periodo, data_ingresso, curso_id) VALUES
+  ('Ana Souza',   'ana@liga.edu.br',   7, '2024-03-11', 1),
+  ('Bruno Lima',  'bruno@liga.edu.br', 3, '2025-02-20', 2),
+  ('Carla Dias',  'carla@liga.edu.br', 5, '2024-08-05', 1),
+  ('Diego Rocha', 'diego@liga.edu.br', 9, '2023-09-14', 3),
+  ('Elisa Prado', 'elisa@liga.edu.br', 1, '2026-03-02', NULL);
+\end{sqlcode}
+
+Repare que \comando{id}, \comando{ativo} e \comando{criado\_em} não foram
+informados: são preenchidos pelo \comando{AUTO\_INCREMENT} e pelos
+\comando{DEFAULT}.
+
+\begin{itemize}
+    \item Datas vão sempre no formato \comando{'AAAA-MM-DD'} e entre aspas.
+    \item Texto entre aspas simples (\comando{'Ana'}); números sem aspas (\comando{7}).
+    \item A ordem dos valores em \comando{VALUES} deve corresponder exatamente
+          à ordem das colunas listadas.
+\end{itemize}
+
+\section{Read: \comando{SELECT}}
+
+O comando mais usado da linguagem. A estrutura completa é:
+
+\begin{sqlcode}
+SELECT   colunas
+FROM     tabela
+WHERE    condicao          -- filtra LINHAS
+ORDER BY coluna [ASC|DESC] -- ordena
+LIMIT    n;                -- limita a quantidade
+\end{sqlcode}
+
+\begin{sqlcode}
+SELECT * FROM membro;                    -- tudo (bom para explorar, ruim em producao)
+SELECT nome, email FROM membro;          -- so as colunas que interessam
+SELECT nome AS aluno, periodo AS sem FROM membro;  -- AS renomeia no resultado
+\end{sqlcode}
+
+\subsection{Filtrando com \comando{WHERE}}
+
+\begin{sqlcode}
+SELECT * FROM membro WHERE periodo > 5;
+SELECT * FROM membro WHERE ativo = TRUE AND periodo >= 5;
+SELECT * FROM membro WHERE periodo IN (1, 3, 5);
+SELECT * FROM membro WHERE periodo BETWEEN 3 AND 7;    -- inclusivo nas 2 pontas
+SELECT * FROM membro WHERE nome LIKE 'A%';             -- comeca com A
+SELECT * FROM membro WHERE email LIKE '%@liga.edu.br'; -- termina com
+SELECT * FROM membro WHERE nome LIKE '%ana%';          -- contem
+SELECT * FROM membro WHERE curso_id IS NULL;           -- sem curso informado
+SELECT * FROM membro WHERE data_ingresso >= '2025-01-01';
+\end{sqlcode}
+
+\begin{table}[H]
+\centering
+\caption{Operadores de filtro}
+\label{tab:operadores}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Operador} & \textbf{Significado} \\
+\midrule
+\comando{=} \quad \comando{<>} (ou \comando{!=}) & Igual / diferente \\
+\comando{>} \quad \comando{<} \quad \comando{>=} \quad \comando{<=} & Comparação \\
+\comando{AND} \quad \comando{OR} \quad \comando{NOT} & Combinação lógica \\
+\comando{IN (a, b, c)}      & Está na lista \\
+\comando{BETWEEN a AND b}   & Está no intervalo, incluindo as pontas \\
+\comando{LIKE}              & Padrão de texto: \comando{\%} é qualquer coisa, \comando{\_} é um caractere \\
+\comando{IS NULL} / \comando{IS NOT NULL} & Testa ausência de valor \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ordenando e limitando}
+
+\begin{sqlcode}
+SELECT nome, periodo FROM membro ORDER BY periodo DESC;
+SELECT nome, periodo FROM membro ORDER BY periodo DESC, nome ASC;
+SELECT nome FROM membro ORDER BY data_ingresso ASC LIMIT 3;  -- os 3 mais antigos
+\end{sqlcode}
+
+\comando{ASC} é crescente (padrão, pode ser omitido) e \comando{DESC} é
+decrescente.
+
+\section{Update: alterando}
+
+\begin{sqlcode}
+UPDATE membro
+SET    periodo = 8
+WHERE  id = 1;
+
+UPDATE membro
+SET    ativo = FALSE, periodo = 10
+WHERE  email = 'diego@liga.edu.br';
+\end{sqlcode}
+
+\section{Delete: removendo}
+
+Para praticar sem destruir os dados da aula, crie um registro descartável e
+apague apenas ele:
+
+\begin{sqlcode}
+INSERT INTO membro (nome, email, periodo, data_ingresso)
+VALUES ('Registro Teste', 'teste@liga.edu.br', 1, '2026-01-01');
+
+SELECT * FROM membro WHERE email = 'teste@liga.edu.br';   -- confira ANTES
+DELETE FROM membro WHERE email = 'teste@liga.edu.br';
+\end{sqlcode}
+
+\section{O erro mais caro de quem está começando}
+\label{sec:where-ausente}
+
+\begin{aviso}[Sem \comando{WHERE}, o comando vale para a tabela inteira]
+\begin{sqlcode}
+UPDATE membro SET periodo = 1;   -- zera o periodo de TODOS os membros
+DELETE FROM membro;              -- apaga TODOS os membros da tabela
+\end{sqlcode}
+E não existe ``desfazer'' em SQL.
+\end{aviso}
+
+O hábito obrigatório é testar com \comando{SELECT} antes:
+
+\begin{sqlcode}
+-- 1) veja EXATAMENTE quais linhas serao afetadas
+SELECT * FROM membro WHERE id = 5;
+
+-- 2) so entao troque o SELECT * pelo DELETE ou UPDATE,
+--    mantendo exatamente o mesmo WHERE
+DELETE FROM membro WHERE id = 5;
+\end{sqlcode}
+
+\begin{dica}[Rede de proteção, e a falta dela]
+O MySQL Workbench tem o \emph{safe update mode}, que \textbf{bloqueia}
+\comando{UPDATE} e \comando{DELETE} sem \comando{WHERE} em coluna-chave. O
+phpMyAdmin \textbf{não} protege: nele, a disciplina é sua.
+
+\comando{DELETE FROM tabela;} apaga as linhas uma a uma (é DML).
+\comando{TRUNCATE TABLE tabela;} esvazia a tabela de forma muito mais rápida e
+reinicia o \comando{AUTO\_INCREMENT}, mas é DDL e não pode ser desfeito por
+\comando{ROLLBACK}.
+\end{dica}

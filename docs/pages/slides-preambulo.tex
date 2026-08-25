@@ -1,0 +1,157 @@
+% ======================================================================
+% Preâmbulo dos slides — marca for_code
+% Compartilhado por apresentacao.tex e apresentacao_notes.tex
+% Compilar com XeLaTeX (a Lexend vem de arquivos locais).
+% ======================================================================
+\usepackage[brazil]{babel}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{bookmark}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{pgfpages}
+
+% ====== Fonte da marca ======
+\usepackage{fontspec}
+\newcommand{\fontpath}{./assets/fonts/}
+\setmainfont[
+    Path        = \fontpath,
+    UprightFont = *-Regular,
+    BoldFont    = *-ExtraBold,
+]{Lexend}
+\newfontfamily\lexendsemibold[Path=\fontpath, UprightFont=*-SemiBold]{Lexend}
+\newfontfamily\lexendlight[Path=\fontpath, UprightFont=*-Light]{Lexend}
+
+% ====== Paleta da marca ======
+\definecolor{darkpurple}{HTML}{1E1647}
+\definecolor{lightpurple}{HTML}{614AD3}
+\definecolor{yellow}{HTML}{FFFF00}
+\definecolor{white}{HTML}{FFFFFF}
+% Tons auxiliares para os blocos de código (extensão da marca)
+\definecolor{codebg}{HTML}{140E30}
+\definecolor{codecomment}{HTML}{8C86B8}
+\definecolor{verdeok}{HTML}{5BD98A}
+\definecolor{vermelhoerro}{HTML}{FF6B6B}
+
+% ====== Tema ======
+\setbeamercolor{background canvas}{bg=darkpurple}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=lightpurple}
+\setbeamercolor{itemize item}{fg=lightpurple}
+\setbeamercolor{alerted text}{fg=yellow}
+\setbeamercolor{alertblock title}{bg=yellow, fg=darkpurple}
+\setbeamercolor{alertblock body}{bg=yellow, fg=darkpurple}
+\setbeamercolor{exampleblock title}{bg=lightpurple, fg=white}
+\setbeamercolor{exampleblock body}{bg=lightpurple, fg=white}
+\setbeamertemplate{itemize item}{\textcolor{lightpurple}{\rule[0.3pt]{6pt}{6pt}}}
+\setbeamertemplate{itemize subitem}{\textcolor{lightpurple}{\rule[0.3pt]{5pt}{5pt}}}
+\setbeamertemplate{itemize subsubitem}{\textcolor{lightpurple}{\rule[0.3pt]{4pt}{4pt}}}
+\setbeamertemplate{navigation symbols}{}
+
+% ====== Rodapé: logo à esquerda, número entre colchetes à direita ======
+\setbeamertemplate{footline}{
+  \leavevmode%
+  \vspace{1em}
+  \makebox[\paperwidth]{%
+    \hspace{1em}
+    \includegraphics[width=0.15\linewidth]{./assets/logos/for_code_para_fundo_escuro.png}%
+    \hfill
+    \textcolor{lightpurple}{\scriptsize \textbf{[ \insertframenumber \;]}}%
+    \hspace{1em}
+  }%
+  \vspace{0.5em}
+}
+
+% ====== Marca d'água nos slides de conteúdo ======
+\addtobeamertemplate{background}{
+  \ifnum\insertframenumber>2
+    \ifnum\insertframenumber<\inserttotalframenumber
+      \begin{tikzpicture}[remember picture, overlay]
+        \node[anchor=center, opacity=0.30] at ([xshift=4cm, yshift=-2.3cm]current page.center) {
+          \includegraphics[width=0.18\paperwidth]{./assets/logos/simbolo_para_fundo_escuro.png}
+        };
+      \end{tikzpicture}
+    \fi
+  \fi
+}{}
+
+% ======================================================================
+% Blocos de código — extensão da marca
+% O modelo original não previa código; numa capacitação de SQL ele é o
+% conteúdo principal, então o estilo abaixo segue a paleta for_code.
+% ======================================================================
+\lstset{
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=%
+      {á}{{\'a}}1 {à}{{\`a}}1 {ã}{{\~a}}1 {â}{{\^a}}1
+      {é}{{\'e}}1 {ê}{{\^e}}1 {í}{{\'i}}1
+      {ó}{{\'o}}1 {õ}{{\~o}}1 {ô}{{\^o}}1
+      {ú}{{\'u}}1 {ç}{{\c c}}1
+      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1 {Ç}{{\c C}}1
+}
+\lstdefinestyle{sqlslide}{
+    language         = SQL,
+    morekeywords     = {AUTO_INCREMENT,ENGINE,InnoDB,IF,EXISTS,DATABASE,DATABASES,
+                        REFERENCES,CONSTRAINT,CASCADE,BOOLEAN,TINYINT,VARCHAR,
+                        TIMESTAMP,CHARACTER,COLLATE,LIMIT,SHOW,DESCRIBE,USE,
+                        DECIMAL,TRUE,FALSE},
+    basicstyle       = \ttfamily\footnotesize\color{white},
+    keywordstyle     = \color{lightpurple}\bfseries,
+    commentstyle     = \color{codecomment}\itshape,
+    stringstyle      = \color{yellow},
+    backgroundcolor  = \color{codebg},
+    frame            = leftline,
+    framesep         = 6pt,
+    rulecolor        = \color{lightpurple},
+    framerule        = 2pt,
+    xleftmargin      = 8pt,
+    framexleftmargin = 8pt,
+    breaklines       = true,
+    showstringspaces = false,
+    upquote          = true,
+    tabsize          = 2,
+    aboveskip        = 0.6em,
+    belowskip        = 0.4em,
+}
+\lstnewenvironment{sql}[1][]{\lstset{style=sqlslide,#1}}{}
+
+% ====== Atalhos de marcação ======
+\newcommand{\tit}[1]{\textcolor{lightpurple}{\textbf{[}} \textbf{\textcolor{white}{#1}} \textcolor{lightpurple}{\textbf{]}}}
+\newcommand{\dest}[1]{\textcolor{yellow}{\textbf{#1}}}
+\newcommand{\rox}[1]{\textcolor{lightpurple}{\textbf{#1}}}
+\newcommand{\cd}[1]{\texttt{\textcolor{yellow}{#1}}}
+\newcommand{\ok}{\textcolor{verdeok}{$\checkmark$}}
+\newcommand{\nok}{\textcolor{vermelhoerro}{$\times$}}
+
+% ====== Slide divisor de bloco, com o relógio da capacitação ======
+% Uso: \bloco{3}{DDL: criando a estrutura}{00:35}{20 min}
+\newcommand{\bloco}[4]{%
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\lexendlight\textcolor{lightpurple}{\Large BLOCO #1}}
+
+    \vspace{0.8em}
+    {\fontsize{26}{32}\selectfont\textbf{\textcolor{white}{#2}}}
+
+    \vspace{1.5em}
+    \textcolor{lightpurple}{\rule{0.35\linewidth}{2pt}}
+
+    \vspace{1.2em}
+    {\lexendsemibold\textcolor{yellow}{\large #3 \quad · \quad #4}}
+  \end{center}
+  \vfill
+\end{frame}}
+
+% ====== Notas do apresentador ======
+% apresentacao_notes.tex define \COMNOTAS antes de incluir este preâmbulo.
+\ifdefined\COMNOTAS
+  \setbeameroption{show notes on second screen=right}
+\fi
+
+% ====== Capa ======
+\title{{\Huge \textcolor{lightpurple}{\textbf{[}} \textbf{Capacitação de MySQL} \textcolor{lightpurple}{\textbf{]}}}}
+\author{{\normalsize Ronivaldo D. Andrade}}
+\date{{\normalsize \today}}

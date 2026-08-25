@@ -1,0 +1,136 @@
+% ----------------------------------------------------------------------
+% Configurações visuais — Capacitação de MySQL
+% ----------------------------------------------------------------------
+
+% --- Paleta da marca ---------------------------------------------------
+\definecolor{branco}{HTML}{FFFFFF}
+\definecolor{roxoescuro}{HTML}{1E1647}
+\definecolor{roxoclaro}{HTML}{614AD3}
+\definecolor{amarelo}{HTML}{FFFF00}
+\definecolor{cinzafundo}{HTML}{F4F4F7}
+\definecolor{cinzalinha}{HTML}{9A9AB0}
+\definecolor{verdeok}{HTML}{1B7F4B}
+\definecolor{vermelhoerro}{HTML}{B3261E}
+
+% --- Atalhos de marcação -----------------------------------------------
+\newcommand{\comando}[1]{\texttt{#1}}
+\newcommand{\sqlkw}[1]{\texttt{\textbf{#1}}}
+\newcommand{\ok}{\textcolor{verdeok}{\ding{51}}}
+\newcommand{\nok}{\textcolor{vermelhoerro}{\ding{55}}}
+
+% ----------------------------------------------------------------------
+% Ambientes de código (listings)
+% ----------------------------------------------------------------------
+% O 'literate' abaixo é necessário porque o listings não processa UTF-8
+% sozinho: sem ele, cada acento dentro de um bloco de código vira lixo.
+\lstset{
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=%
+      {á}{{\'a}}1 {à}{{\`a}}1 {ã}{{\~a}}1 {â}{{\^a}}1
+      {é}{{\'e}}1 {ê}{{\^e}}1 {í}{{\'i}}1
+      {ó}{{\'o}}1 {õ}{{\~o}}1 {ô}{{\^o}}1
+      {ú}{{\'u}}1 {ü}{{\"u}}1 {ç}{{\c c}}1
+      {Á}{{\'A}}1 {À}{{\`A}}1 {Ã}{{\~A}}1 {Â}{{\^A}}1
+      {É}{{\'E}}1 {Ê}{{\^E}}1 {Í}{{\'I}}1
+      {Ó}{{\'O}}1 {Õ}{{\~O}}1 {Ô}{{\^O}}1
+      {Ú}{{\'U}}1 {Ç}{{\c C}}1
+      {º}{{\textordmasculine}}1 {ª}{{\textordfeminine}}1
+}
+
+\lstdefinestyle{base}{
+    basicstyle       = \ttfamily\footnotesize,
+    backgroundcolor  = \color{cinzafundo},
+    frame            = single,
+    rulecolor        = \color{cinzalinha},
+    breaklines       = true,
+    breakatwhitespace= false,
+    postbreak        = \mbox{\textcolor{roxoclaro}{$\hookrightarrow$}\space},
+    showstringspaces = false,
+    upquote          = true,
+    tabsize          = 2,
+    captionpos       = b,
+    xleftmargin      = 12pt,
+    framexleftmargin = 12pt,
+}
+
+\lstdefinestyle{sql}{
+    style        = base,
+    language     = SQL,
+    morekeywords = {AUTO_INCREMENT,ENGINE,InnoDB,UNSIGNED,IF,EXISTS,DATABASE,
+                    REFERENCES,CONSTRAINT,CASCADE,RESTRICT,BOOLEAN,TINYINT,
+                    DECIMAL,VARCHAR,TIMESTAMP,CHARACTER,COLLATE,LIMIT,SHOW,
+                    DESCRIBE,TRUNCATE,USE,REPLACE},
+    keywordstyle = \color{roxoescuro}\bfseries,
+    commentstyle = \color{cinzalinha}\itshape,
+    stringstyle  = \color{roxoclaro},
+}
+
+\lstdefinestyle{bash}{
+    style        = base,
+    language     = bash,
+    keywordstyle = \color{roxoescuro}\bfseries,
+    commentstyle = \color{cinzalinha}\itshape,
+    stringstyle  = \color{roxoclaro},
+}
+
+\lstdefinestyle{yaml}{
+    style         = base,
+    basicstyle    = \ttfamily\footnotesize\color{roxoescuro},
+    commentstyle  = \color{cinzalinha}\itshape,
+    morecomment   = [l]{\#},
+    moredelim     = [l][\color{black}]{:\ },
+}
+
+\lstnewenvironment{sqlcode}[1][]{\lstset{style=sql,#1}}{}
+\lstnewenvironment{bashcode}[1][]{\lstset{style=bash,#1}}{}
+\lstnewenvironment{yamlcode}[1][]{\lstset{style=yaml,#1}}{}
+
+% ----------------------------------------------------------------------
+% Caixas de destaque
+% ----------------------------------------------------------------------
+\newtcolorbox{aviso}[1][Atenção]{
+    enhanced, breakable,
+    colback   = vermelhoerro!5,
+    colframe  = vermelhoerro,
+    coltitle  = branco,
+    fonttitle = \bfseries,
+    title     = {#1},
+    left=3mm, right=3mm, top=2mm, bottom=2mm,
+}
+
+\newtcolorbox{dica}[1][Dica]{
+    enhanced, breakable,
+    colback   = roxoclaro!5,
+    colframe  = roxoclaro,
+    coltitle  = branco,
+    fonttitle = \bfseries,
+    title     = {#1},
+    left=3mm, right=3mm, top=2mm, bottom=2mm,
+}
+
+\newtcolorbox{conceito}[1][Conceito]{
+    enhanced, breakable,
+    colback   = roxoescuro!5,
+    colframe  = roxoescuro,
+    coltitle  = branco,
+    fonttitle = \bfseries,
+    title     = {#1},
+    left=3mm, right=3mm, top=2mm, bottom=2mm,
+}
+
+% ----------------------------------------------------------------------
+% Links e metadados do PDF
+% ----------------------------------------------------------------------
+\hypersetup{
+    colorlinks  = true,
+    linkcolor   = roxoescuro,
+    citecolor   = roxoescuro,
+    filecolor   = roxoclaro,
+    urlcolor    = roxoclaro,
+    pdftitle    = {Guia Prático para a Capacitação de MySQL},
+    pdfauthor   = {Ronivaldo Domingues de Andrade},
+    pdfsubject  = {Fundamentos de MySQL e Projetos de Bancos de Dados},
+    pdfkeywords = {MySQL, SQL, Banco de Dados, SGBD, Modelo Relacional,
+                   CRUD, JOIN, phpMyAdmin, Docker},
+}

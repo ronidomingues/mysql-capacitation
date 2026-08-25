@@ -1,0 +1,129 @@
+\begin{apendicesenv}
+\partapendices
+
+% ----------------------------------------------------------------------
+\chapter{Colinha de sintaxe}
+\label{ap:colinha}
+
+\begin{sqlcode}[caption={Estrutura (DDL)}]
+CREATE DATABASE nome CHARACTER SET utf8mb4;
+USE nome;
+CREATE TABLE t (id INT AUTO_INCREMENT PRIMARY KEY, campo VARCHAR(100) NOT NULL);
+ALTER TABLE t ADD COLUMN novo VARCHAR(50);
+ALTER TABLE t MODIFY COLUMN campo VARCHAR(200) NOT NULL;
+ALTER TABLE t DROP COLUMN novo;
+DROP TABLE t;
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Inspeção}]
+SHOW DATABASES;   SHOW TABLES;   DESCRIBE t;   SHOW CREATE TABLE t;
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Dados (DML e DQL)}]
+INSERT INTO t (c1, c2) VALUES (v1, v2), (v3, v4);
+SELECT c1, c2 FROM t WHERE cond ORDER BY c1 DESC LIMIT 10;
+UPDATE t SET c1 = v WHERE id = 1;      -- SEMPRE com WHERE
+DELETE FROM t WHERE id = 1;            -- SEMPRE com WHERE
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Filtros}]
+WHERE a = 1 AND b <> 2
+WHERE a IN (1,2,3)          WHERE a BETWEEN 1 AND 10
+WHERE nome LIKE 'A%'        WHERE campo IS NULL
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Relacionamento}]
+FOREIGN KEY (curso_id) REFERENCES curso(id) ON DELETE SET NULL;
+SELECT m.nome, c.nome FROM membro m INNER JOIN curso c ON m.curso_id = c.id;
+SELECT m.nome, c.nome FROM membro m LEFT  JOIN curso c ON m.curso_id = c.id;
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Agregação}]
+SELECT c.nome, COUNT(*) FROM curso c JOIN membro m ON m.curso_id = c.id
+GROUP BY c.id, c.nome HAVING COUNT(*) >= 2;
+\end{sqlcode}
+
+% ----------------------------------------------------------------------
+\chapter{Script completo da aula}
+\label{ap:script}
+
+Execute do início ao fim para reconstruir todo o cenário da capacitação. O
+arquivo também está disponível no repositório, em
+\comando{materials/liga.sql}.
+
+\begin{aviso}[Antes de colar]
+Substitua as três ocorrências de \comando{liga\_SEUNOME} pelo seu banco
+--- \comando{liga\_ana}, \comando{liga\_joao} e assim por diante. Se você colar
+sem trocar, vai criar um banco literalmente chamado \comando{liga\_seunome} e
+disputá-lo com quem fizer o mesmo.
+\end{aviso}
+
+\lstinputlisting[style=sql]{../materials/liga.sql}
+
+% ----------------------------------------------------------------------
+\chapter{Exercícios}
+\label{ap:exercicios}
+
+Resolva no seu banco \comando{liga\_SEUNOME}, já construído pelo
+Apêndice~\ref{ap:script}.
+
+\begin{enumerate}
+    \item Liste o nome e o e-mail de todos os membros \textbf{ativos}.
+    \item Mostre os membros do 1º ao 5º período, do mais novo para o mais
+          antigo na liga.
+    \item Quantos membros ingressaram a partir de 2025?
+    \item Cadastre um novo curso, \comando{'Engenharia Elétrica'}, e um membro
+          nele.
+    \item Corrija o e-mail da Carla para \comando{carla.dias@liga.edu.br}.
+    \item Liste membro e nome do curso, incluindo quem está sem curso.
+    \item Desative (\comando{ativo = FALSE}) todo membro que ingressou antes de
+          \comando{2024-01-01}.
+    \item Tente inserir um membro com \comando{curso\_id = 999}. Explique a
+          mensagem de erro.
+\end{enumerate}
+
+\section{Respostas}
+
+\begin{sqlcode}[caption={Exercícios 1 a 3}]
+-- 1
+SELECT nome, email FROM membro WHERE ativo = TRUE;
+
+-- 2
+SELECT * FROM membro
+WHERE periodo BETWEEN 1 AND 5
+ORDER BY data_ingresso DESC;
+
+-- 3
+SELECT COUNT(*) FROM membro WHERE data_ingresso >= '2025-01-01';
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Exercícios 4 e 5}]
+-- 4  (o curso PRIMEIRO: a chave estrangeira exige que o pai exista)
+INSERT INTO curso (nome) VALUES ('Engenharia Eletrica');
+INSERT INTO membro (nome, email, periodo, data_ingresso, curso_id)
+VALUES ('Felipe Nunes', 'felipe@liga.edu.br', 2, '2026-03-10',
+        (SELECT id FROM curso WHERE nome = 'Engenharia Eletrica'));
+
+-- 5
+SELECT * FROM membro WHERE nome = 'Carla Dias';           -- confira antes
+UPDATE membro SET email = 'carla.dias@liga.edu.br' WHERE nome = 'Carla Dias';
+\end{sqlcode}
+
+\begin{sqlcode}[caption={Exercícios 6 a 8}]
+-- 6  (LEFT JOIN, porque INNER JOIN esconderia quem nao tem curso)
+SELECT m.nome AS membro, c.nome AS curso
+FROM   membro m LEFT JOIN curso c ON m.curso_id = c.id;
+
+-- 7
+SELECT * FROM membro WHERE data_ingresso < '2024-01-01';  -- confira antes
+UPDATE membro SET ativo = FALSE WHERE data_ingresso < '2024-01-01';
+
+-- 8
+INSERT INTO membro (nome, email, periodo, data_ingresso, curso_id)
+VALUES ('Teste', 'teste@liga.edu.br', 1, '2026-01-01', 999);
+-- ERROR 1452: a chave estrangeira exige que exista um curso com id = 999.
+-- Como nao existe, o SGBD REJEITA a insercao. E a integridade referencial
+-- protegendo o banco contra dado orfao.
+\end{sqlcode}
+
+\end{apendicesenv}

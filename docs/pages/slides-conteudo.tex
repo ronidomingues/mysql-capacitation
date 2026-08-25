@@ -1,0 +1,1048 @@
+% ======================================================================
+% CONTEÚDO DOS SLIDES — Capacitação de MySQL (120 minutos)
+% ----------------------------------------------------------------------
+% Cada frame tem \note{} com o roteiro de fala, a ação esperada e o
+% relógio acumulado. Compile apresentacao_notes.tex para vê-las.
+% ======================================================================
+
+% ============================ CAPA ====================================
+\begin{frame}[plain]
+  \vspace{2em}
+  \includegraphics[width=0.18\linewidth]{./assets/logos/for_code_para_fundo_escuro.png}
+
+  \vfill
+  \begin{center}
+    {\usebeamerfont{title}\inserttitle}
+
+    \vspace{0.8em}
+    {\lexendlight\textcolor{white}{\large Fundamentos de banco de dados relacional}}
+
+    \vspace{1.5em}
+    {\textcolor{lightpurple}{\insertauthor\ – \insertdate}}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    \textcolor{lightpurple}{\rule{0.3\linewidth}{3pt}}
+  \end{flushright}
+
+  \note{
+    \textbf{00:00 — Abertura (5 min para o bloco todo)}\\[.5em]
+    Boas-vindas. Diga seu nome e uma frase sobre por que este tema importa
+    para a liga.\\[.5em]
+    \textbf{Faça agora:} peça para todo mundo já abrir o navegador. A URL do
+    phpMyAdmin vem no slide 4 — quanto antes eles abrirem, menos tempo se
+    perde no bloco 2.
+  }
+\end{frame}
+
+% ============================ O TRATO ==================================
+\begin{frame}{\tit{O trato de hoje}}
+  \vspace{0.5em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \rox{Você vai sair daqui sabendo}
+      \begin{itemize}
+        \item Criar um banco e uma tabela
+        \item Inserir, consultar, alterar e apagar dados
+        \item Filtrar com \cd{WHERE}
+        \item Ligar duas tabelas com \cd{JOIN}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \rox{O que NÃO cabe em 2 horas}
+      \begin{itemize}
+        \item Docker
+        \item Normalização formal
+        \item Índices e performance
+        \item Transações e backup
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{1.2em}
+  \begin{center}
+    \dest{Em 2 horas ninguém vira DBA.}\\
+    \textcolor{white}{Mas todo mundo sai capaz de montar o banco do primeiro projeto.}
+  \end{center}
+
+  \note{
+    \textbf{00:01}\\[.5em]
+    Seja explícito sobre o que fica de fora — isso evita a pergunta
+    ``mas e o Docker?'' no meio do bloco 3.\\[.5em]
+    Frase-âncora: \emph{``o mínimo necessário para o primeiro projeto real''}.
+  }
+\end{frame}
+
+% ============================ ROTEIRO ==================================
+\begin{frame}{\tit{Como as 2 horas vão passar}}
+  \vspace{0.3em}
+  \footnotesize
+  \begin{tabular}{@{}p{0.9cm}p{5.6cm}p{1.3cm}p{1.2cm}@{}}
+    \textcolor{lightpurple}{\textbf{Bloco}} & \textcolor{lightpurple}{\textbf{Assunto}} & \textcolor{lightpurple}{\textbf{Início}} & \textcolor{lightpurple}{\textbf{Tempo}} \\[.3em]
+    0 & Abertura                                & 00:00 & 5 min  \\
+    1 & Conceitos: dado, SGBD, relacional       & 00:05 & 15 min \\
+    2 & Ambiente: todo mundo conectado          & 00:20 & 15 min \\
+    3 & Criando banco e tabela                  & 00:35 & 20 min \\
+    \textcolor{yellow}{--} & \textcolor{yellow}{Pausa}  & \textcolor{yellow}{00:55} & \textcolor{yellow}{5 min} \\
+    4 & Inserindo e consultando                 & 01:00 & 25 min \\
+    5 & Alterando e apagando                    & 01:25 & 10 min \\
+    6 & Ligando tabelas com \cd{JOIN}           & 01:35 & 20 min \\
+    7 & Erros comuns e encerramento             & 01:55 & 5 min  \\
+  \end{tabular}
+
+  \vspace{1em}
+  \begin{center}
+    \rox{Dos 120 minutos, cerca de 75 são de mão na massa.}
+  \end{center}
+
+  \note{
+    \textbf{00:02}\\[.5em]
+    Deixe este slide na tela enquanto fala. Combine a pausa em voz alta —
+    as pessoas se organizam melhor sabendo quando ela vem.\\[.5em]
+    \textbf{Controle de tempo:} se um bloco atrasar, o corte sai do
+    \emph{bônus de agregação} no bloco 6. O \cd{JOIN} não se corta.
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{1}{Do que estamos falando}{00:05}{15 min}
+% ======================================================================
+
+\begin{frame}{\tit{Dado, informação e banco}}
+  \vspace{1em}
+  \begin{columns}[T]
+    \begin{column}{0.32\textwidth}
+      \rox{Dado}\\[.4em]
+      {\lexendlight Valor bruto. Sozinho não diz nada.}\\[.6em]
+      \cd{'Ana'}\\ \cd{2024-03-11}\\ \cd{7}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \rox{Informação}\\[.4em]
+      {\lexendlight Dado dentro de um contexto.}\\[.6em]
+      \textcolor{white}{\small ``Ana ingressou na liga em 11/03/2024 e está no 7º período.''}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \rox{Banco de dados}\\[.4em]
+      {\lexendlight Coleção organizada de dados, guardada de forma persistente e estruturada.}
+    \end{column}
+  \end{columns}
+
+  \note{
+    \textbf{00:06}\\[.5em]
+    Use um exemplo da própria liga em vez do da tela, se tiver um à mão.\\[.5em]
+    \textbf{Pergunte:} ``onde vocês guardam dados hoje?'' — a resposta quase
+    sempre é planilha. Guarde essa resposta: ela volta no bloco 6, quando o
+    \cd{JOIN} mostra o que a planilha não faz.
+  }
+\end{frame}
+
+\begin{frame}{\tit{SGBD: quem realmente cuida dos dados}}
+  \vspace{0.5em}
+  {\lexendlight O \rox{SGBD} é o \textbf{software servidor} que gerencia o banco.
+  Em inglês, \emph{DBMS}.}
+
+  \vspace{1em}
+  \begin{itemize}
+    \item Grava e lê os dados em disco
+    \item \dest{Garante a integridade} — não deixa entrar dado que viola suas regras
+    \item Controla o acesso concorrente — várias pessoas escrevendo sem corromper nada
+    \item Controla as permissões de cada usuário
+  \end{itemize}
+
+  \vspace{1em}
+  \begin{center}
+    \textcolor{lightpurple}{\rule{0.5\linewidth}{1pt}}\\[.6em]
+    {\small MySQL · PostgreSQL · SQL Server · Oracle · SQLite}
+  \end{center}
+
+  \note{
+    \textbf{00:09}\\[.5em]
+    O ponto que precisa colar: \dest{o SGBD não é o banco}. Ele é o programa
+    que cuida do banco.\\[.5em]
+    Analogia que funciona: o banco de dados é o acervo; o SGBD é o
+    bibliotecário. Você não entra no acervo — você pede ao bibliotecário.
+  }
+\end{frame}
+
+\begin{frame}{\tit{Cuidado com esta frase}}
+  \vspace{1.5em}
+  \begin{center}
+    {\large\lexendlight\textcolor{codecomment}{``A única forma de falar com um SGBD é por SQL.''}}
+
+    \vspace{1em}
+    {\Large\dest{Isso é falso.}}
+  \end{center}
+
+  \vspace{1.2em}
+  \begin{itemize}
+    \item A conversa real acontece por um \rox{protocolo de rede binário} — o MySQL escuta na porta \cd{3306}
+    \item O SQL é a linguagem que \textbf{trafega dentro} desse protocolo
+    \item O MySQL também expõe o \rox{X DevAPI}, uma API de CRUD sem SQL
+    \item Quando você usa um \rox{ORM} (Prisma, Eloquent, Hibernate), escreve objetos — o ORM traduz para SQL antes de enviar
+  \end{itemize}
+
+  \vspace{0.8em}
+  \begin{center}
+    {\small SQL é a interface \textbf{padrão e dominante} — não a única.}
+  \end{center}
+
+  \note{
+    \textbf{00:11}\\[.5em]
+    Slide de correção conceitual. Vale gastar um minuto porque essa frase
+    aparece em muito material ruim da internet.\\[.5em]
+    Não aprofunde X DevAPI nem ORM — só planta a semente. Se perguntarem,
+    responda que ORM é assunto de outra capacitação.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Modelo relacional}}
+  \vspace{0.3em}
+  {\lexendlight\small Edgar F. Codd, 1970. Os dados vivem em \rox{tabelas}.}
+
+  \vspace{0.8em}
+  \begin{sql}
+TABELA membro
++----+--------------+--------------------+---------+
+| id | nome         | email              | periodo |
++----+--------------+--------------------+---------+
+|  1 | Ana Souza    | ana@liga.edu.br    |       7 |
+|  2 | Bruno Lima   | bruno@liga.edu.br  |       3 |
++----+--------------+--------------------+---------+
+  \end{sql}
+
+  \vspace{0.5em}
+  \begin{itemize}
+    \item \rox{Linha} (registro): uma ocorrência do mundo real
+    \item \rox{Coluna} (campo): uma característica dela, com \dest{tipo fixo}
+    \item \rox{Chave}: o que liga uma tabela a outra — daí ``relacional''
+  \end{itemize}
+
+  \note{
+    \textbf{00:14}\\[.5em]
+    Aponte na tela: linha na horizontal, coluna na vertical. Parece óbvio
+    para você, não é para quem nunca viu.\\[.5em]
+    \dest{``Tipo fixo''} é a diferença central para uma planilha: na
+    planilha, alguém digita ``sete'' na coluna de período e ninguém reclama.
+    Aqui o banco recusa.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{SQL não é um bloco só}}
+  \vspace{0.5em}
+  \small
+  \begin{tabular}{@{}p{1.2cm}p{4.3cm}p{4.6cm}@{}}
+    \textcolor{lightpurple}{\textbf{Sigla}} & \textcolor{lightpurple}{\textbf{Para quê}} & \textcolor{lightpurple}{\textbf{Comandos}} \\[.4em]
+    \textbf{DDL} & Define a \dest{estrutura}   & \cd{CREATE} \cd{ALTER} \cd{DROP} \\[.3em]
+    \textbf{DML} & Manipula os \dest{dados}    & \cd{INSERT} \cd{UPDATE} \cd{DELETE} \\[.3em]
+    \textbf{DQL} & \dest{Consulta} os dados    & \cd{SELECT} \\[.3em]
+    \textbf{DCL} & Controla \dest{permissões}  & \cd{GRANT} \cd{REVOKE} \\[.3em]
+    \textbf{TCL} & Controla \dest{transações}  & \cd{COMMIT} \cd{ROLLBACK} \\
+  \end{tabular}
+
+  \vspace{1.2em}
+  \begin{center}
+    \rox{Hoje: DDL (uma vez) + DML e DQL (o tempo todo).}
+  \end{center}
+
+  \note{
+    \textbf{00:17}\\[.5em]
+    Não decore a tabela com eles. O que precisa ficar é a distinção entre
+    \dest{mexer na estrutura} e \dest{mexer nos dados}.\\[.5em]
+    Frase: ``criar tabela você faz uma vez no projeto; inserir e consultar,
+    a aplicação faz milhares de vezes por dia''.\\[.5em]
+    \textbf{Fim do bloco 1 — devem ser ~00:20.} Se passou de 00:22, acelere
+    o bloco 2 pulando o slide de conflito de portas.
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{2}{Todo mundo conectado}{00:20}{15 min}
+% ======================================================================
+
+\begin{frame}{\tit{Você não vai instalar nada}}
+  \vspace{0.8em}
+  {\lexendlight O MySQL e o phpMyAdmin rodam na máquina do instrutor.
+  Você acessa por uma URL, no navegador.}
+
+  \vspace{1.5em}
+  \begin{center}
+    \begin{tabular}{@{}rl@{}}
+      \textcolor{lightpurple}{\textbf{URL}}     & \dest{\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_} \\[.6em]
+      \textcolor{lightpurple}{\textbf{Usuário}} & \cd{aluno} \\[.6em]
+      \textcolor{lightpurple}{\textbf{Senha}}   & \cd{aluno} \\
+    \end{tabular}
+  \end{center}
+
+  \vspace{1.5em}
+  \begin{center}
+    {\small Na primeira visita aparece uma tela de aviso do túnel.\\
+    Clique em \rox{Visit Site} e siga.}
+  \end{center}
+
+  \note{
+    \textbf{00:20 — o bloco mais arriscado da aula}\\[.5em]
+    \textbf{Escreva a URL no quadro} ou cole no chat da turma. Ela muda a cada
+    vez que o túnel sobe.\\[.5em]
+    \textbf{Avise da tela de aviso ANTES} de alguém perguntar — senão viram
+    5 minutos de ``professor, deu uma tela estranha''.\\[.5em]
+    Circule pela sala. Não avance enquanto todo mundo não estiver dentro.
+  }
+\end{frame}
+
+\begin{frame}{\tit{phpMyAdmin: onde vamos digitar}}
+  \vspace{0.8em}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      {\lexendlight Um \rox{cliente SQL} é o programa por onde \textbf{você}
+      conversa com o servidor.}
+
+      \vspace{1em}
+      \begin{itemize}
+        \item Ele abre a conexão
+        \item Envia os comandos
+        \item Mostra o resultado em tabela
+      \end{itemize}
+
+      \vspace{1em}
+      {\small O phpMyAdmin é uma \dest{aplicação web} — não é programa
+      instalado. Por isso basta o navegador.}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \rox{Outros clientes}
+      \begin{itemize}
+        \item[] {\small MySQL Workbench}
+        \item[] {\small DBeaver}
+        \item[] {\small HeidiSQL}
+        \item[] {\small \texttt{mysql} no terminal}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \note{
+    \textbf{00:24}\\[.5em]
+    Mostre na tela: a barra lateral (bancos) e a \dest{aba SQL} — é nela que
+    tudo acontece hoje.\\[.5em]
+    Deixe claro que servidor e cliente são \textbf{programas separados}, e
+    podem estar em máquinas diferentes. É o que está acontecendo agora:
+    o servidor é o seu, o cliente é o navegador deles.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Mão na massa \#1: crie o seu banco}}
+  \vspace{0.5em}
+  {\lexendlight\small Abra a \rox{aba SQL} e execute:}
+
+  \begin{sql}
+SELECT VERSION(), NOW();
+  \end{sql}
+
+  {\lexendlight\small Voltou versão e data? Está conectado. Agora crie o
+  \dest{seu} banco — troque \texttt{SEUNOME} pelo seu primeiro nome:}
+
+  \begin{sql}
+CREATE DATABASE liga_SEUNOME CHARACTER SET utf8mb4;
+USE liga_SEUNOME;
+  \end{sql}
+
+  \vspace{0.3em}
+  \begin{center}
+    {\small \cd{liga\_ana} \quad \cd{liga\_joao} \quad \cd{liga\_carla}}
+  \end{center}
+
+  \note{
+    \textbf{00:27 — primeira digitação da turma}\\[.5em]
+    \textbf{Diga em voz alta:} minúsculas, sem acento, sem espaço.
+    \cd{liga\_joao}, nunca \cd{liga\_João}.\\[.5em]
+    \textbf{Por que cada um tem o seu:} o servidor é um só. Se todos usassem
+    o mesmo banco, o \cd{CREATE TABLE} do segundo já daria erro e um
+    \cd{DELETE} apagaria o dado de todos.\\[.5em]
+    \textbf{Erro esperado:} \cd{ERROR 1044} = o nome não começa com
+    \cd{liga\_}. É proposital, protege o meu banco de demonstração.
+  }
+\end{frame}
+
+\begin{frame}{\tit{Por que cada um tem o seu banco}}
+  \vspace{1.5em}
+  \begin{center}
+    {\large Um servidor só, a turma inteira dentro.}
+  \end{center}
+
+  \vspace{1.2em}
+  \begin{itemize}
+    \item Se todos usassem o mesmo banco, o segundo \cd{CREATE TABLE} já falharia
+    \item Um \cd{DELETE} de qualquer um apagaria o dado de todos
+    \item O login \cd{aluno} só tem permissão em bancos \cd{liga\_*}
+  \end{itemize}
+
+  \vspace{1.5em}
+  \begin{center}
+    \begin{tabular}{@{}ll@{}}
+      \ok & \cd{CREATE DATABASE liga\_ana} \\[.4em]
+      \nok & \cd{USE cap} \quad {\small \textcolor{codecomment}{(banco do instrutor)}} \\[.4em]
+      \nok & \cd{CREATE DATABASE bagunca} \\
+    \end{tabular}
+  \end{center}
+
+  \note{
+    \textbf{00:31}\\[.5em]
+    Slide curto, de fechamento do bloco. Se o tempo estiver bom, faça a
+    demonstração ao vivo: tente \cd{USE cap} no seu phpMyAdmin logado como
+    \cd{aluno} e mostre o \cd{ERROR 1044} na tela.\\[.5em]
+    \textbf{Fim do bloco 2 — devem ser ~00:35.}
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{3}{Criando a estrutura}{00:35}{20 min}
+% ======================================================================
+
+\begin{frame}[fragile]{\tit{A ordem nunca muda}}
+  \vspace{0.8em}
+  \begin{sql}
+1. CREATE DATABASE  ->  criar o banco       | DDL
+2. USE              ->  selecionar o banco  | feito UMA vez
+3. CREATE TABLE     ->  criar a tabela      |
+                    v
+4. INSERT           ->  inserir dados       | DML/DQL
+5. SELECT           ->  consultar           | o tempo todo
+6. UPDATE           ->  alterar             |
+7. DELETE           ->  remover             |
+  \end{sql}
+
+  \vspace{0.8em}
+  \begin{center}
+    \rox{Sempre existe estrutura antes do dado.}
+  \end{center}
+
+  \note{
+    \textbf{00:35}\\[.5em]
+    A confusão mais comum aqui é achar que criar tabela e inserir dado são
+    a mesma coisa. \dest{Não são.}\\[.5em]
+    Criar tabela: uma vez, no projeto. Inserir: milhares de vezes, pela
+    aplicação, todo dia.
+  }
+\end{frame}
+
+\begin{frame}{\tit{Tipos de dados}}
+  \vspace{0.3em}
+  \footnotesize
+  \begin{tabular}{@{}p{3.1cm}p{4.1cm}p{3.4cm}@{}}
+    \textcolor{lightpurple}{\textbf{Tipo}} & \textcolor{lightpurple}{\textbf{Guarda}} & \textcolor{lightpurple}{\textbf{Use para}} \\[.4em]
+    \cd{INT}           & Inteiro                & IDs, contadores \\
+    \cd{TINYINT}       & Inteiro pequeno        & Período, idade \\
+    \cd{VARCHAR(n)}    & Texto até \emph{n}     & Nome, e-mail \\
+    \cd{TEXT}          & Texto longo            & Descrições \\
+    \cd{DATE}          & \cd{AAAA-MM-DD}        & Data de ingresso \\
+    \cd{DATETIME}      & Data e hora            & Agendamentos \\
+    \cd{TIMESTAMP}     & Data e hora com fuso   & \cd{criado\_em} \\
+    \cd{BOOLEAN}       & Verdadeiro ou falso    & Sinalizadores \\
+    \cd{DECIMAL(p,s)}  & Número exato           & \dest{Dinheiro} \\
+    \cd{FLOAT}         & Número aproximado      & \textcolor{vermelhoerro}{Nunca dinheiro} \\
+  \end{tabular}
+
+  \vspace{0.8em}
+  \begin{center}
+    {\small\dest{Regra de ouro:} dinheiro em \cd{DECIMAL}. \cd{FLOAT} é
+    aproximado — $0{,}1 + 0{,}2$ pode não dar $0{,}3$.}
+  \end{center}
+
+  \note{
+    \textbf{00:38}\\[.5em]
+    Não leia a tabela inteira. Destaque três coisas:\\
+    1. \cd{VARCHAR} é o que vocês mais vão usar;\\
+    2. dinheiro é \cd{DECIMAL}, nunca \cd{FLOAT} — isso já custou processo a
+       muita empresa;\\
+    3. o tipo é o que impede ``banana'' de entrar na coluna de período.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Mão na massa \#2: as duas tabelas}}
+  \vspace{0.3em}
+  \begin{sql}
+CREATE TABLE curso (
+  id   INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(80) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+  \end{sql}
+
+  \begin{sql}
+CREATE TABLE membro (
+  id            INT          AUTO_INCREMENT PRIMARY KEY,
+  nome          VARCHAR(120) NOT NULL,
+  email         VARCHAR(160) NOT NULL UNIQUE,
+  periodo       TINYINT      NOT NULL,
+  data_ingresso DATE         NOT NULL,
+  ativo         BOOLEAN      NOT NULL DEFAULT TRUE,
+  curso_id      INT          NULL
+) ENGINE=InnoDB;
+  \end{sql}
+
+  \note{
+    \textbf{00:42 — segunda digitação, a mais longa da aula}\\[.5em]
+    \textbf{Dê tempo de verdade aqui.} São 15 linhas. Circule pela sala.\\[.5em]
+    \cd{ENGINE=InnoDB} é o que permite chave estrangeira no bloco 6. O motor
+    antigo, MyISAM, aceita a declaração e \emph{ignora em silêncio}.\\[.5em]
+    \textbf{Erro esperado:} \cd{ERROR 1046} = esqueceu o \cd{USE}.
+  }
+\end{frame}
+
+\begin{frame}{\tit{As restrições são a qualidade do dado}}
+  \vspace{0.5em}
+  \small
+  \begin{tabular}{@{}p{3.5cm}p{7cm}@{}}
+    \cd{PRIMARY KEY}     & Identifica cada linha. Não repete, não aceita \cd{NULL}. \dest{Uma por tabela} \\[.5em]
+    \cd{AUTO\_INCREMENT} & O MySQL gera o número sozinho \\[.5em]
+    \cd{NOT NULL}        & Campo obrigatório \\[.5em]
+    \cd{UNIQUE}          & Não pode repetir. Pode haver várias por tabela \\[.5em]
+    \cd{DEFAULT x}       & Valor assumido se o \cd{INSERT} não informar \\[.5em]
+    \cd{FOREIGN KEY}     & Liga esta tabela a outra \quad {\small\textcolor{codecomment}{(bloco 6)}} \\
+  \end{tabular}
+
+  \vspace{1em}
+  \begin{center}
+    {\small\rox{NULL} não é zero e não é texto vazio — é
+    \dest{``não informado''}.}
+  \end{center}
+
+  \note{
+    \textbf{00:48}\\[.5em]
+    \textbf{PK vs UNIQUE} é a dúvida garantida. A diferença: só existe uma PK
+    por tabela e ela não aceita \cd{NULL}; \cd{UNIQUE} pode ter várias e
+    aceita \cd{NULL}.\\[.5em]
+    Plante o \cd{NULL} agora — no bloco 4 eles vão tentar
+    \cd{WHERE curso\_id = NULL} e não vai funcionar.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Conferindo o que você criou}}
+  \vspace{1em}
+  \begin{sql}
+SHOW TABLES;
+DESCRIBE membro;
+SHOW CREATE TABLE membro;
+  \end{sql}
+
+  \vspace{1.5em}
+  \begin{center}
+    {\lexendlight Confira que as duas tabelas apareceram\\
+    antes de irmos para a pausa.}
+  \end{center}
+
+  \note{
+    \textbf{00:52}\\[.5em]
+    Checkpoint obrigatório: \textbf{ninguém entra na pausa sem as duas
+    tabelas criadas}. Quem estiver travado, resolva agora — depois da pausa
+    o ritmo acelera e ele não recupera.\\[.5em]
+    \textbf{Fim do bloco 3 — devem ser ~00:55.}
+  }
+\end{frame}
+
+% ============================ PAUSA ====================================
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\fontsize{48}{56}\selectfont\textbf{\textcolor{yellow}{Pausa}}}
+
+    \vspace{1.5em}
+    {\lexendlight\textcolor{white}{\Large 5 minutos}}
+
+    \vspace{2em}
+    \textcolor{lightpurple}{\rule{0.3\linewidth}{2pt}}
+
+    \vspace{1.5em}
+    {\small\textcolor{codecomment}{Deixe o phpMyAdmin aberto.}}
+  \end{center}
+  \vfill
+
+  \note{
+    \textbf{00:55 — 5 minutos, cronometrados}\\[.5em]
+    Aproveite para: conferir se alguém ficou para trás no
+    \cd{CREATE TABLE}, e deixar o \cd{INSERT} do próximo slide já copiado
+    para colar.\\[.5em]
+    \textbf{Retome em 01:00 mesmo que falte gente.}
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{4}{Inserindo e consultando}{01:00}{25 min}
+% ======================================================================
+
+\begin{frame}{\tit{CRUD: as quatro operações}}
+  \vspace{1.5em}
+  \begin{center}
+    \Large
+    \begin{tabular}{@{}llll@{}}
+      \textbf{C}reate & \cd{INSERT} & \textcolor{codecomment}{\small DML} \\[.7em]
+      \textbf{R}ead   & \cd{SELECT} & \textcolor{codecomment}{\small DQL} \\[.7em]
+      \textbf{U}pdate & \cd{UPDATE} & \textcolor{codecomment}{\small DML} \\[.7em]
+      \textbf{D}elete & \cd{DELETE} & \textcolor{codecomment}{\small DML} \\
+    \end{tabular}
+  \end{center}
+
+  \vspace{1.5em}
+  \begin{center}
+    {\lexendlight Todo sistema que você escrever na vida\\faz essas quatro coisas.}
+  \end{center}
+
+  \note{
+    \textbf{01:00}\\[.5em]
+    Slide de mapa. 30 segundos, não mais.\\[.5em]
+    Vale dizer: ``de agora até o fim da aula, tudo é uma dessas quatro''.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Mão na massa \#3: povoando as tabelas}}
+  \vspace{0.2em}
+  \begin{sql}
+INSERT INTO curso (nome) VALUES
+  ('Engenharia de Software'), ('Ciencia da Computacao'),
+  ('Sistemas de Informacao'), ('Engenharia de Producao');
+  \end{sql}
+
+  \begin{sql}
+INSERT INTO membro (nome, email, periodo, data_ingresso, curso_id)
+VALUES
+  ('Ana Souza',   'ana@liga.edu.br',   7, '2024-03-11', 1),
+  ('Bruno Lima',  'bruno@liga.edu.br', 3, '2025-02-20', 2),
+  ('Carla Dias',  'carla@liga.edu.br', 5, '2024-08-05', 1),
+  ('Diego Rocha', 'diego@liga.edu.br', 9, '2023-09-14', 3),
+  ('Elisa Prado', 'elisa@liga.edu.br', 1, '2026-03-02', NULL);
+  \end{sql}
+
+  \vspace{0.2em}
+  {\small Repare: \cd{id} e \cd{ativo} \textbf{não} foram informados.}
+
+  \note{
+    \textbf{01:01}\\[.5em]
+    Três regras para dizer em voz alta:\\
+    1. texto entre \dest{aspas simples}, número sem aspas;\\
+    2. data sempre \cd{'AAAA-MM-DD'};\\
+    3. a ordem dos valores segue a ordem das colunas listadas.\\[.5em]
+    \textbf{Repare na Elisa:} \cd{curso\_id} é \cd{NULL}. Ela volta no bloco
+    6 e é ela que faz o \cd{LEFT JOIN} fazer sentido. Não deixe apagarem.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{SELECT: a estrutura completa}}
+  \vspace{0.8em}
+  \begin{sql}
+SELECT   colunas
+FROM     tabela
+WHERE    condicao          -- filtra LINHAS
+ORDER BY coluna [ASC|DESC] -- ordena
+LIMIT    n;                -- limita a quantidade
+  \end{sql}
+
+  \vspace{1em}
+  \begin{sql}
+SELECT * FROM membro;
+SELECT nome, email FROM membro;
+SELECT nome AS aluno, periodo AS sem FROM membro;
+  \end{sql}
+
+  \note{
+    \textbf{01:06}\\[.5em]
+    Este é \textbf{o} comando da linguagem. Tudo depois disto é variação dele.\\[.5em]
+    \cd{SELECT *} é ótimo para explorar e ruim em produção — diga isso agora,
+    de passagem, sem entrar em performance.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{WHERE: filtrando linhas}}
+  \vspace{0.5em}
+  \begin{sql}
+SELECT * FROM membro WHERE periodo > 5;
+SELECT * FROM membro WHERE ativo = TRUE AND periodo >= 5;
+SELECT * FROM membro WHERE periodo IN (1, 3, 5);
+SELECT * FROM membro WHERE periodo BETWEEN 3 AND 7;
+SELECT * FROM membro WHERE nome LIKE 'A%';
+SELECT * FROM membro WHERE email LIKE '%@liga.edu.br';
+SELECT * FROM membro WHERE curso_id IS NULL;
+  \end{sql}
+
+  \vspace{0.8em}
+  \begin{center}
+    \dest{\cd{WHERE curso\_id = NULL} nunca funciona.}\\
+    {\small \cd{NULL} não é comparável com \cd{=}. Use \cd{IS NULL}.}
+  \end{center}
+
+  \note{
+    \textbf{01:10 — maior fatia de prática do bloco}\\[.5em]
+    Peça para digitarem \textbf{um de cada vez} e olharem o resultado antes
+    do próximo. É aqui que a ficha cai.\\[.5em]
+    \cd{LIKE}: \cd{\%} é ``qualquer coisa'', \cd{\_} é ``um caractere''.\\[.5em]
+    \textbf{Faça o erro na tela:} rode \cd{WHERE curso\_id = NULL}, mostre
+    que volta vazio, e só então corrija para \cd{IS NULL}. Ver o erro
+    acontecer ensina mais que o aviso.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Ordenando e limitando}}
+  \vspace{1em}
+  \begin{sql}
+SELECT nome, periodo FROM membro ORDER BY periodo DESC;
+
+SELECT nome, periodo FROM membro
+ORDER BY periodo DESC, nome ASC;
+
+-- os 3 membros mais antigos da liga
+SELECT nome FROM membro ORDER BY data_ingresso ASC LIMIT 3;
+  \end{sql}
+
+  \vspace{1.2em}
+  \begin{center}
+    \cd{ASC} = crescente (padrão) \qquad \cd{DESC} = decrescente
+  \end{center}
+
+  \note{
+    \textbf{01:17}\\[.5em]
+    Mostre o critério de desempate (\cd{ORDER BY a, b}) — é o que responde
+    ``e se dois tiverem o mesmo período?''.\\[.5em]
+    \cd{LIMIT} é o que evita despejar 50 mil linhas na tela.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Exercício relâmpago}}
+  \vspace{1.2em}
+  {\lexendlight 3 minutos. Escreva o \cd{SELECT} para:}
+
+  \vspace{1.2em}
+  \begin{enumerate}
+    \item Todos os membros \dest{ativos}, mostrando só nome e e-mail
+    \item Membros do \dest{1º ao 5º} período, do mais novo para o mais antigo
+    \item Quantos ingressaram \dest{a partir de 2025}
+  \end{enumerate}
+
+  \vspace{1.5em}
+  \begin{center}
+    {\small\textcolor{codecomment}{Dica do 3: \cd{SELECT COUNT(*) FROM ...}}}
+  \end{center}
+
+  \note{
+    \textbf{01:20 — 3 min de exercício + 2 de correção}\\[.5em]
+    Respostas:\\
+    1. \cd{SELECT nome, email FROM membro WHERE ativo = TRUE;}\\
+    2. \cd{SELECT * FROM membro WHERE periodo BETWEEN 1 AND 5 ORDER BY data\_ingresso DESC;}\\
+    3. \cd{SELECT COUNT(*) FROM membro WHERE data\_ingresso >= '2025-01-01';}\\[.5em]
+    \textbf{Corrija na tela}, digitando junto. Peça para alguém ditar.\\[.5em]
+    \textbf{Fim do bloco 4 — devem ser ~01:25.}
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{5}{Alterando e apagando}{01:25}{10 min}
+% ======================================================================
+
+\begin{frame}[fragile]{\tit{UPDATE e DELETE}}
+  \vspace{0.8em}
+  \begin{sql}
+UPDATE membro
+SET    periodo = 8
+WHERE  id = 1;
+  \end{sql}
+
+  \begin{sql}
+-- crie um registro descartavel para poder apagar com seguranca
+INSERT INTO membro (nome, email, periodo, data_ingresso)
+VALUES ('Registro Teste', 'teste@liga.edu.br', 1, '2026-01-01');
+
+DELETE FROM membro WHERE email = 'teste@liga.edu.br';
+  \end{sql}
+
+  \note{
+    \textbf{01:25}\\[.5em]
+    \textbf{Use o registro descartável} — não deixe ninguém apagar a Elisa,
+    que é a única sem curso e é peça do bloco 6.\\[.5em]
+    A sintaxe é fácil. O próximo slide é que é o importante.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{O erro mais caro da carreira de vocês}}
+  \vspace{0.5em}
+  \begin{sql}
+UPDATE membro SET periodo = 1;   -- zera TODOS os membros
+DELETE FROM membro;              -- apaga TODOS os membros
+  \end{sql}
+
+  \vspace{0.8em}
+  \begin{center}
+    {\Large\dest{Sem WHERE, vale para a tabela inteira.}}\\[.5em]
+    {\large E não existe Ctrl+Z em SQL.}
+  \end{center}
+
+  \vspace{1em}
+  \begin{sql}
+-- 1) veja EXATAMENTE o que sera afetado
+SELECT * FROM membro WHERE id = 5;
+
+-- 2) so entao troque SELECT * por DELETE, com o MESMO where
+DELETE FROM membro WHERE id = 5;
+  \end{sql}
+
+  \note{
+    \textbf{01:29 — o slide mais importante da aula}\\[.5em]
+    \textbf{Pare. Repita.} Se eles esquecerem tudo e lembrarem só disto, a
+    capacitação valeu.\\[.5em]
+    Conte um caso real, seu ou de conhecido, de \cd{DELETE} sem \cd{WHERE}
+    em produção. História cola, regra não.\\[.5em]
+    O MySQL Workbench tem \emph{safe update mode} que bloqueia isso.
+    \dest{O phpMyAdmin não protege} — aqui a disciplina é deles.\\[.5em]
+    \textbf{Fim do bloco 5 — devem ser ~01:35.}
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{6}{Ligando tabelas}{01:35}{20 min}
+% ======================================================================
+
+\begin{frame}{\tit{Até agora isso é uma planilha}}
+  \vspace{1em}
+  {\lexendlight E se guardássemos o nome do curso dentro de \cd{membro}?}
+
+  \vspace{1.2em}
+  \begin{itemize}
+    \item ``Engenharia de Software'' repetido em dezenas de linhas
+    \item Alguém digita ``Eng. de Software''
+    \item Outro digita ``engenharia de software''
+    \item \dest{A consulta por curso quebra}
+    \item Corrigir o nome exige alterar todas as linhas
+  \end{itemize}
+
+  \vspace{1.2em}
+  \begin{center}
+    \rox{Solução: o curso vira uma tabela própria.}\\
+    {\small E \cd{membro} guarda apenas o \cd{id} do curso.}
+  \end{center}
+
+  \note{
+    \textbf{01:35}\\[.5em]
+    \textbf{Retome a resposta do começo da aula} — quando você perguntou
+    ``onde vocês guardam dados hoje?'' e disseram planilha. É agora que se
+    mostra o que a planilha não faz.\\[.5em]
+    Este é o slide que justifica a palavra ``relacional''.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Chave primária e chave estrangeira}}
+  \vspace{0.3em}
+  \begin{sql}
+   curso                          membro
++----+---------------------+   +----+------------+----------+
+| id | nome                |   | id | nome       | curso_id |
++----+---------------------+   +----+------------+----------+
+|  1 | Eng. de Software    |<--|  1 | Ana Souza  |        1 |
+|  2 | Ciencia da Comp.    |<--|  2 | Bruno Lima |        2 |
++----+---------------------+   +----+------------+----------+
+       ^                                        ^
+       PK                                       FK
+  \end{sql}
+
+  \vspace{0.5em}
+  \begin{itemize}
+    \item \rox{PK} identifica a linha \textbf{dentro} da própria tabela
+    \item \rox{FK} \textbf{aponta} para a PK de outra tabela
+    \item O SGBD passa a \dest{garantir} que aquele valor existe do outro lado
+  \end{itemize}
+
+  \note{
+    \textbf{01:38}\\[.5em]
+    O nome disso é \dest{integridade referencial}. Diga o termo — eles vão
+    reencontrá-lo em toda documentação.\\[.5em]
+    Aponte as setas na tela. A direção importa: a FK aponta para a PK, nunca
+    o contrário.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Mão na massa \#4: declarando a FK}}
+  \vspace{0.5em}
+  \begin{sql}
+ALTER TABLE membro
+  ADD CONSTRAINT fk_membro_curso
+  FOREIGN KEY (curso_id) REFERENCES curso(id)
+  ON DELETE SET NULL;
+  \end{sql}
+
+  \vspace{0.8em}
+  {\lexendlight\small Agora tente inserir um curso que não existe:}
+
+  \begin{sql}
+INSERT INTO membro (nome, email, periodo, data_ingresso, curso_id)
+VALUES ('Fake', 'fake@liga.edu.br', 1, '2026-01-01', 999);
+  \end{sql}
+
+  \vspace{0.5em}
+  \begin{center}
+    \dest{ERROR 1452: a foreign key constraint fails}\\
+    {\small O erro é o \textbf{sucesso}: o banco se recusou a guardar lixo.}
+  \end{center}
+
+  \note{
+    \textbf{01:42}\\[.5em]
+    \textbf{Faça todo mundo provocar o erro.} É contraintuitivo e por isso
+    marca: eles esperam que erro seja coisa ruim.\\[.5em]
+    Frase: ``sem a FK, esse 999 entrava e ninguém percebia até o relatório
+    sair errado''.\\[.5em]
+    \cd{ON DELETE SET NULL}: se o curso for apagado, os membros ficam sem
+    curso em vez de sumirem. A alternativa \cd{CASCADE} apagaria os membros
+    junto — cuidado com ela.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{JOIN: as duas tabelas juntas}}
+  \vspace{0.3em}
+  \begin{sql}
+-- INNER JOIN: so os membros QUE TEM curso
+SELECT m.nome AS membro, c.nome AS curso, m.periodo
+FROM   membro m
+INNER  JOIN curso c ON m.curso_id = c.id
+ORDER  BY c.nome;
+  \end{sql}
+
+  \begin{sql}
+-- LEFT JOIN: TODOS os membros. Elisa aparece com curso NULL.
+SELECT m.nome AS membro, c.nome AS curso
+FROM   membro m
+LEFT   JOIN curso c ON m.curso_id = c.id;
+  \end{sql}
+
+  \vspace{0.3em}
+  \begin{center}
+    {\small A condição do \cd{ON} é sempre \dest{FK = PK}.}
+  \end{center}
+
+  \note{
+    \textbf{01:47 — o clímax da aula}\\[.5em]
+    \textbf{Rode os dois e conte as linhas na tela:} \cd{INNER} volta 4,
+    \cd{LEFT} volta 5. A diferença é a Elisa. É essa comparação que ensina —
+    não a definição.\\[.5em]
+    \cd{m} e \cd{c} são apelidos. Sem eles, \cd{nome} fica ambíguo e o MySQL
+    responde \cd{ERROR 1052}.\\[.5em]
+    \textbf{Esqueceu o \cd{ON}?} Produto cartesiano: cada membro cruzado com
+    cada curso. Mostre se sobrar tempo.
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\tit{Bônus: contar e agrupar}}
+  \vspace{0.8em}
+  \begin{sql}
+SELECT COUNT(*) FROM membro;
+SELECT AVG(periodo) FROM membro;
+  \end{sql}
+
+  \begin{sql}
+-- quantos membros por curso
+SELECT c.nome AS curso, COUNT(m.id) AS total
+FROM   curso c
+LEFT   JOIN membro m ON m.curso_id = c.id
+GROUP  BY c.id, c.nome
+ORDER  BY total DESC;
+  \end{sql}
+
+  \vspace{0.5em}
+  \begin{center}
+    {\small \cd{WHERE} filtra \textbf{linhas antes} de agrupar ·
+    \cd{HAVING} filtra \textbf{grupos depois}}
+  \end{center}
+
+  \note{
+    \textbf{01:53 — SLIDE CORTÁVEL}\\[.5em]
+    \dest{Se o relógio passou de 01:55, pule este slide.} Ele é o único
+    conteúdo sacrificável da aula — está no guia, eles leem depois.\\[.5em]
+    Se der tempo: o \cd{LEFT JOIN} aqui é o que faz ``Engenharia de
+    Produção'' aparecer com zero. Com \cd{INNER} ela sumiria.
+  }
+\end{frame}
+
+% ======================================================================
+\bloco{7}{Fechando}{01:55}{5 min}
+% ======================================================================
+
+\begin{frame}{\tit{Os erros que vão acontecer com você}}
+  \vspace{0.3em}
+  \footnotesize
+  \begin{tabular}{@{}p{4.4cm}p{6.2cm}@{}}
+    \cd{ERROR 1046} No database selected & Faltou o \cd{USE liga\_SEUNOME} \\[.45em]
+    \cd{ERROR 1044} Access denied        & Seu banco não começa com \cd{liga\_} \\[.45em]
+    \cd{ERROR 1050} Table already exists & Rodou o \cd{CREATE TABLE} duas vezes \\[.45em]
+    \cd{ERROR 1062} Duplicate entry      & Violou \cd{PRIMARY KEY} ou \cd{UNIQUE} \\[.45em]
+    \cd{ERROR 1452} FK constraint fails  & Apontou para um \cd{id} que não existe \\[.45em]
+    \cd{ERROR 1052} Column is ambiguous  & Faltou qualificar: \cd{m.nome}, \cd{c.nome} \\[.45em]
+    Acento virou caractere estranho      & Banco criado sem \cd{utf8mb4} \\[.45em]
+    O comando não executa                & Faltou o \cd{;} no fim \\
+  \end{tabular}
+
+  \note{
+    \textbf{01:55}\\[.5em]
+    Não leia a tabela. Diga: ``está tudo no guia, com a causa e a correção de
+    cada um''. O valor deste slide é eles saberem que a lista existe.
+  }
+\end{frame}
+
+\begin{frame}{\tit{Para onde ir depois}}
+  \vspace{0.8em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \rox{Estudar, nesta ordem}
+      \begin{enumerate}
+        \item[] {\small 1. Normalização (1FN, 2FN, 3FN)}
+        \item[] {\small 2. Modelagem ER}
+        \item[] {\small 3. Relação N:N}
+        \item[] {\small 4. \cd{GROUP BY} e subconsultas}
+        \item[] {\small 5. Índices e \cd{EXPLAIN}}
+        \item[] {\small 6. Transações e ACID}
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \rox{Praticar de graça}
+      \begin{itemize}
+        \item[] {\small SQLBolt}
+        \item[] {\small SQLZoo}
+        \item[] {\small DB Fiddle}
+        \item[] {\small HackerRank SQL}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{1.2em}
+  \begin{center}
+    \dest{O guia completo e o script da aula}\\
+    {\small estão no repositório da capacitação.}
+  \end{center}
+
+  \note{
+    \textbf{01:57}\\[.5em]
+    \textbf{Passe o link do repositório} — no quadro e no chat da turma.\\[.5em]
+    Diga que o guia tem tudo que passou aqui, mais os exercícios com
+    resposta. Eles não precisam ter anotado nada.
+  }
+\end{frame}
+
+% ============================ FINAL ====================================
+\begin{frame}[plain]
+  \vspace{2em}
+  \includegraphics[width=0.18\linewidth]{./assets/logos/for_code_para_fundo_escuro.png}
+
+  \vfill
+  \textbf{{\fontsize{40}{48}\selectfont Obrigado!}} \\
+  \vspace{1.5em}
+  \textbf{\textcolor{lightpurple}{{\large
+  Capacitação de MySQL \\
+  \vspace{0.8em}
+  Ronivaldo D. Andrade \\
+  \vspace{0.8em}
+  \today
+  }}}
+
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=center] at ([xshift=5cm]current page.center) {
+      \textcolor{lightpurple}{\fontsize{250}{300}\selectfont\textbf{]}}
+    };
+  \end{tikzpicture}
+
+  \note{
+    \textbf{02:00}\\[.5em]
+    Abra para perguntas enquanto eles guardam as coisas.\\[.5em]
+    \textbf{Não esqueça:} derrubar o túnel do ngrok depois que todos saírem.
+  }
+\end{frame}

@@ -1,0 +1,169 @@
+\chapter{Relacionamentos: a parte relacional}
+\label{cap:relacionamentos}
+
+Até aqui usamos uma tabela só --- isso é uma planilha, não um banco relacional.
+O que muda tudo é \textbf{relacionar} tabelas.
+
+\section{O problema que a chave estrangeira resolve}
+
+Se guardássemos o nome do curso dentro de \comando{membro}, teríamos
+``Engenharia de Software'' repetido em dezenas de linhas. Aí alguém digita
+``Eng. de Software'', outro digita ``engenharia de software'', e a consulta por
+curso quebra. Corrigir o nome exigiria alterar todas as linhas.
+
+A solução: o curso vira uma tabela própria, e \comando{membro} guarda apenas o
+\comando{id} do curso.
+
+\begin{lstlisting}[style=base,caption={Duas tabelas ligadas por chave},label={lst:fk}]
+   curso                          membro
++----+---------------------+   +----+------------+----------+
+| id | nome                |   | id | nome       | curso_id |
++----+---------------------+   +----+------------+----------+
+|  1 | Eng. de Software    |<--|  1 | Ana Souza  |        1 |
+|  2 | Ciencia da Comp.    |<--|  2 | Bruno Lima |        2 |
++----+---------------------+   |  3 | Carla Dias |        1 |
+       ^                       +----+------------+----------+
+  chave primaria (PK)                          chave estrangeira (FK)
+\end{lstlisting}
+
+\begin{conceito}[PK e FK]
+A \textbf{chave primária (PK)} identifica a linha \emph{dentro} da própria
+tabela. A \textbf{chave estrangeira (FK)} é uma coluna que \emph{aponta} para a
+PK de outra tabela. Com ela declarada, o SGBD passa a \textbf{garantir} que
+aquele valor existe do outro lado --- isso se chama \textbf{integridade
+referencial}.
+\end{conceito}
+
+\section{Declarando a chave estrangeira}
+
+\begin{sqlcode}
+ALTER TABLE membro
+  ADD CONSTRAINT fk_membro_curso
+  FOREIGN KEY (curso_id) REFERENCES curso(id)
+  ON DELETE SET NULL
+  ON UPDATE CASCADE;
+\end{sqlcode}
+
+Com a chave estrangeira ativa, o comando abaixo passa a \textbf{falhar} --- e é
+exatamente o que queremos:
+
+\begin{sqlcode}
+INSERT INTO membro (nome, email, periodo, data_ingresso, curso_id)
+VALUES ('Fake', 'fake@liga.edu.br', 1, '2026-01-01', 999);
+-- ERROR 1452: Cannot add or update a child row:
+--             a foreign key constraint fails
+\end{sqlcode}
+
+\begin{table}[H]
+\centering
+\caption{Ações de \comando{ON DELETE} e \comando{ON UPDATE}}
+\label{tab:fk-acoes}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Ação} & \textbf{Efeito ao apagar ou alterar o curso} \\
+\midrule
+\comando{RESTRICT} (padrão) & Impede a operação enquanto houver membro apontando para ele \\
+\comando{SET NULL}          & Os membros ficam com \comando{curso\_id = NULL}; exige coluna que aceite \comando{NULL} \\
+\comando{CASCADE}           & Propaga: apagar o curso apagaria os membros. \textbf{Use com muito cuidado} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Cardinalidades}
+
+\begin{itemize}
+    \item \textbf{1:N (um para muitos)} --- o caso mais comum. Um curso tem
+          vários membros; cada membro tem um curso. \textbf{A chave estrangeira
+          fica no lado ``muitos''}, ou seja, em \comando{membro}. É o nosso caso.
+    \item \textbf{1:1} --- chave estrangeira com \comando{UNIQUE}. Raro.
+    \item \textbf{N:N (muitos para muitos)} --- por exemplo, um membro
+          participa de vários projetos e um projeto tem vários membros.
+          Resolve-se com uma \textbf{tabela intermediária}
+          (\comando{membro\_projeto}) que guarda duas chaves estrangeiras.
+          Conceito citado, não praticado nesta capacitação.
+\end{itemize}
+
+\section{\comando{JOIN}: consultando as duas tabelas juntas}
+
+\comando{JOIN} combina linhas de tabelas diferentes usando a condição de
+ligação declarada no \comando{ON}.
+
+\begin{sqlcode}
+-- INNER JOIN: so os membros QUE TEM curso
+SELECT m.nome AS membro,
+       c.nome AS curso,
+       m.periodo
+FROM   membro m
+INNER  JOIN curso c ON m.curso_id = c.id
+ORDER  BY c.nome, m.nome;
+\end{sqlcode}
+
+\begin{sqlcode}
+-- LEFT JOIN: TODOS os membros, tenham curso ou nao.
+-- Elisa aparece com curso = NULL.
+SELECT m.nome AS membro,
+       c.nome AS curso
+FROM   membro m
+LEFT   JOIN curso c ON m.curso_id = c.id;
+\end{sqlcode}
+
+\begin{table}[H]
+\centering
+\caption{Tipos de \comando{JOIN}}
+\label{tab:joins}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Tipo} & \textbf{Retorna} \\
+\midrule
+\comando{INNER JOIN} & Só as linhas com correspondência \textbf{nos dois lados} \\
+\comando{LEFT JOIN}  & \textbf{Todas} as da tabela da esquerda, mais as correspondentes da direita (\comando{NULL} se não houver) \\
+\comando{RIGHT JOIN} & O espelho do \comando{LEFT}; raro, basta inverter a ordem das tabelas \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{dica}[Apelidos e a armadilha do \comando{ON}]
+\comando{membro m} e \comando{curso c} são \textbf{apelidos}
+(\emph{aliases}). Com duas tabelas em jogo, \comando{m.nome} e \comando{c.nome}
+deixam claro de qual tabela é cada coluna; sem isso o MySQL responde
+\comando{ERROR 1052: Column 'nome' in field list is ambiguous}.
+
+A condição do \comando{ON} é sempre \textbf{FK = PK}. Esquecer o \comando{ON}
+produz um produto cartesiano: cada membro cruzado com cada curso.
+\end{dica}
+
+\section{Bônus: contar e agrupar}
+\label{sec:agregacao}
+
+\begin{dica}
+Este conteúdo entra somente se o cronograma permitir
+(Seção~\ref{sec:roteiro}). Caso contrário, fica como material de estudo.
+\end{dica}
+
+Funções de agregação resumem várias linhas em um valor: \comando{COUNT},
+\comando{SUM}, \comando{AVG}, \comando{MIN} e \comando{MAX}.
+
+\begin{sqlcode}
+SELECT COUNT(*) FROM membro;      -- quantos membros existem
+SELECT AVG(periodo) FROM membro;  -- periodo medio
+SELECT MIN(data_ingresso), MAX(data_ingresso) FROM membro;
+\end{sqlcode}
+
+\comando{GROUP BY} aplica a agregação \textbf{por grupo}:
+
+\begin{sqlcode}
+SELECT c.nome        AS curso,
+       COUNT(m.id)   AS total_membros
+FROM   curso c
+LEFT   JOIN membro m ON m.curso_id = c.id
+GROUP  BY c.id, c.nome
+ORDER  BY total_membros DESC;
+\end{sqlcode}
+
+\begin{conceito}[\comando{WHERE} e \comando{HAVING}]
+\comando{WHERE} filtra \textbf{linhas antes} de agrupar; \comando{HAVING}
+filtra \textbf{grupos depois} de agregar. Por exemplo:
+\comando{... GROUP BY c.id, c.nome HAVING COUNT(m.id) >= 2;}
+\end{conceito}

@@ -1,0 +1,208 @@
+\chapter{SQL: fundamentos e definição de estruturas}
+\label{cap:sql}
+
+\textbf{SQL} (\emph{Structured Query Language}, ``linguagem de consulta
+estruturada'') é a linguagem padronizada pela ANSI e pela ISO para definir e
+manipular dados em bancos relacionais. Ela é \textbf{declarativa}: descreve-se
+\emph{o que} se quer, não \emph{como} buscar. O SGBD decide o caminho.
+
+Cada SGBD tem seu ``sotaque'' (dialeto), mas o núcleo é o mesmo --- o que se
+aprende aqui vale, com ajustes pequenos, para PostgreSQL, SQL Server e SQLite.
+
+\section{SQL não é um bloco só}
+
+Os comandos SQL são agrupados por finalidade. Conhecer esse mapa evita muita
+confusão.
+
+\begin{table}[H]
+\centering
+\caption{Sublinguagens do SQL}
+\label{tab:sublinguagens}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}llXl@{}}
+\toprule
+\textbf{Sigla} & \textbf{Nome} & \textbf{Para quê} & \textbf{Comandos} \\
+\midrule
+\textbf{DDL} & \emph{Data Definition Language}    & Define a \textbf{estrutura} & \comando{CREATE}, \comando{ALTER}, \comando{DROP} \\
+\textbf{DML} & \emph{Data Manipulation Language}  & Manipula os \textbf{dados}  & \comando{INSERT}, \comando{UPDATE}, \comando{DELETE} \\
+\textbf{DQL} & \emph{Data Query Language}         & \textbf{Consulta} os dados  & \comando{SELECT} \\
+\textbf{DCL} & \emph{Data Control Language}       & Controla \textbf{permissões}& \comando{GRANT}, \comando{REVOKE} \\
+\textbf{TCL} & \emph{Transaction Control Language}& Controla \textbf{transações}& \comando{COMMIT}, \comando{ROLLBACK} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{dica}
+Muitos autores tratam o \comando{SELECT} como parte do DML. Os dois usos
+existem na literatura; o importante é entender a diferença entre \textbf{mexer
+na estrutura} (DDL) e \textbf{mexer nos dados} (DML e DQL). Nesta capacitação
+usamos DDL, DML e DQL.
+\end{dica}
+
+\section{A ordem de trabalho}
+
+Como o MySQL é relacional, sempre existe uma estrutura antes do dado. A ordem
+nunca muda:
+
+\begin{lstlisting}[style=base,caption={Do banco vazio ao dado consultado},label={lst:ordem}]
+1. CREATE DATABASE  ->  criar o banco          | DDL: a estrutura,
+2. USE              ->  selecionar o banco     | feita uma vez
+3. CREATE TABLE     ->  criar a(s) tabela(s)   |
+                    v
+4. INSERT           ->  inserir dados          | DML/DQL: o dia a dia,
+5. SELECT           ->  consultar dados        | repetido o tempo todo
+6. UPDATE           ->  alterar dados          |
+7. DELETE           ->  remover dados          |
+\end{lstlisting}
+
+\begin{aviso}[Ponto que costuma passar batido]
+Criar tabela e inserir dados não são o mesmo tipo de operação. Criar tabela é
+DDL, feito uma vez no projeto. \comando{INSERT}, \comando{UPDATE} e
+\comando{DELETE} são DML, executados milhares de vezes pela aplicação.
+\end{aviso}
+
+O cenário usado no restante deste guia é um cadastro de membros da liga
+acadêmica, com duas tabelas: \comando{curso} e \comando{membro}.
+
+\section{Criando o banco}
+\label{sec:create-database}
+
+\begin{aviso}
+Troque \comando{SEUNOME} pelo seu primeiro nome, aqui e em todo o resto do
+guia. Se você é a Ana, seu banco é \comando{liga\_ana}. Veja a
+Seção~\ref{sec:banco-proprio}.
+\end{aviso}
+
+\begin{sqlcode}
+CREATE DATABASE IF NOT EXISTS liga_SEUNOME
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_0900_ai_ci;
+
+USE liga_SEUNOME;
+\end{sqlcode}
+
+\begin{itemize}
+    \item \comando{IF NOT EXISTS} evita erro se o banco já existir.
+    \item \comando{utf8mb4} é o conjunto de caracteres que suporta
+          \textbf{acentos e emojis} corretamente. É o padrão do MySQL 8, mas
+          declará-lo explicitamente é boa prática: em servidores antigos o
+          padrão era \comando{latin1}, que quebra a acentuação.
+    \item \comando{USE liga\_SEUNOME;} define o banco corrente. \textbf{Sem
+          isso, os comandos seguintes não sabem onde agir} e o servidor
+          responde \comando{ERROR 1046: No database selected}. No phpMyAdmin,
+          clicar no banco na barra lateral tem o mesmo efeito.
+\end{itemize}
+
+Comandos úteis de inspeção:
+
+\begin{sqlcode}
+SHOW DATABASES;              -- lista os bancos visiveis para voce
+SHOW TABLES;                 -- lista as tabelas do banco corrente
+DESCRIBE membro;             -- mostra as colunas e tipos de uma tabela
+SHOW CREATE TABLE membro;    -- mostra o CREATE TABLE completo
+\end{sqlcode}
+
+\section{Tipos de dados}
+\label{sec:tipos}
+
+Cada coluna tem um \textbf{tipo}, e é ele que garante que a coluna
+\comando{periodo} nunca receba \comando{"banana"}. Escolher bem o tipo é boa
+parte da qualidade de uma tabela.
+
+\begin{table}[H]
+\centering
+\caption{Tipos de dados mais usados no MySQL}
+\label{tab:tipos}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+\textbf{Tipo} & \textbf{Guarda} & \textbf{Quando usar} \\
+\midrule
+\comando{INT}          & Inteiro (cerca de $\pm$2,1 bilhões) & IDs, contadores, quantidades \\
+\comando{TINYINT}      & Inteiro pequeno & Período, idade \\
+\comando{BIGINT}       & Inteiro muito grande & IDs de sistemas de altíssimo volume \\
+\comando{DECIMAL(p,s)} & Número exato com casas decimais & \textbf{Dinheiro}: \comando{DECIMAL(10,2)} \\
+\comando{FLOAT} / \comando{DOUBLE} & Número aproximado & Medidas científicas. \textbf{Nunca para dinheiro} \\
+\comando{VARCHAR(n)}   & Texto variável, até $n$ & Nome, e-mail, título: o caso mais comum \\
+\comando{CHAR(n)}      & Texto de tamanho \textbf{fixo} & Siglas: \comando{CHAR(2)} para UF \\
+\comando{TEXT}         & Texto longo (até 64 KB) & Descrições, observações \\
+\comando{DATE}         & Data (\comando{AAAA-MM-DD}) & Data de nascimento, de ingresso \\
+\comando{DATETIME}     & Data e hora & Agendamentos, registro de eventos \\
+\comando{TIMESTAMP}    & Data e hora, sensível a fuso & \comando{criado\_em}, \comando{atualizado\_em} \\
+\comando{BOOLEAN}      & Verdadeiro ou falso & Sinalizadores. No MySQL é apelido de \comando{TINYINT(1)} \\
+\comando{ENUM(...)}    & Um valor de uma lista fixa & Status: \comando{ENUM('ativo','inativo')} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{aviso}[Regra de ouro]
+Dinheiro em \comando{DECIMAL}, \textbf{nunca} em \comando{FLOAT}.
+\comando{FLOAT} é aproximado, e $0{,}1 + 0{,}2$ pode não dar exatamente
+$0{,}3$.
+\end{aviso}
+
+\begin{conceito}[\comando{NULL} não é zero nem string vazia]
+\comando{NULL} significa ``valor desconhecido ou não informado''. Por isso
+\comando{WHERE curso\_id = NULL} \textbf{nunca} funciona: o correto é
+\comando{WHERE curso\_id IS NULL}.
+\end{conceito}
+
+\section{Criando a tabela}
+\label{sec:create-table}
+
+\begin{sqlcode}
+CREATE TABLE curso (
+  id   INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(80) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+\end{sqlcode}
+
+\begin{sqlcode}
+CREATE TABLE membro (
+  id            INT           AUTO_INCREMENT PRIMARY KEY,
+  nome          VARCHAR(120)  NOT NULL,
+  email         VARCHAR(160)  NOT NULL UNIQUE,
+  periodo       TINYINT       NOT NULL,
+  data_ingresso DATE          NOT NULL,
+  ativo         BOOLEAN       NOT NULL DEFAULT TRUE,
+  curso_id      INT           NULL,
+  criado_em     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+\end{sqlcode}
+
+As \textbf{restrições} (\emph{constraints}) são onde mora a qualidade do dado.
+
+\begin{table}[H]
+\centering
+\caption{Restrições de coluna}
+\label{tab:constraints}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Restrição} & \textbf{O que faz} \\
+\midrule
+\comando{PRIMARY KEY}    & Identifica cada linha de forma \textbf{única}. Não aceita \comando{NULL}, não repete. Uma por tabela \\
+\comando{AUTO\_INCREMENT}& O MySQL gera o próximo número sozinho; esse campo não é informado no \comando{INSERT} \\
+\comando{NOT NULL}       & O campo é obrigatório \\
+\comando{UNIQUE}         & O valor não pode se repetir na coluna \\
+\comando{DEFAULT x}      & Valor assumido quando o \comando{INSERT} não informa a coluna \\
+\comando{FOREIGN KEY}    & Liga esta tabela a outra (Capítulo~\ref{cap:relacionamentos}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{conceito}[\comando{PRIMARY KEY} e \comando{UNIQUE}]
+As duas impedem repetição. A diferença: só existe \textbf{uma} chave primária
+por tabela e ela \textbf{não aceita \comando{NULL}}; já \comando{UNIQUE} pode
+haver várias na mesma tabela, e ela aceita \comando{NULL}.
+\end{conceito}
+
+Alterar a estrutura depois também é DDL:
+
+\begin{sqlcode}
+ALTER TABLE membro ADD COLUMN telefone VARCHAR(20) NULL;
+ALTER TABLE membro MODIFY COLUMN nome VARCHAR(150) NOT NULL;
+ALTER TABLE membro DROP COLUMN telefone;
+
+DROP TABLE membro;    -- apaga a tabela E todos os dados, sem desfazer
+\end{sqlcode}

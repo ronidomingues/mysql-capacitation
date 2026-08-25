@@ -1,0 +1,52 @@
+\chapter{Conclusão e próximos passos}
+
+Em duas horas percorremos o caminho completo de um banco relacional:
+\textbf{entender o modelo}, \textbf{subir o servidor}, \textbf{conectar por um
+cliente}, \textbf{definir a estrutura} (DDL), \textbf{manipular os dados}
+(CRUD) e \textbf{relacionar tabelas} (chave estrangeira e \comando{JOIN}). Isso
+é suficiente para modelar e operar o banco de um primeiro projeto da liga.
+
+\section{O que estudar depois}
+
+Nesta ordem:
+
+\begin{enumerate}
+    \item \textbf{Normalização (1FN, 2FN, 3FN)} --- como decidir quantas
+          tabelas o seu projeto precisa \cite{elmasri2016}.
+    \item \textbf{Modelagem entidade-relacionamento} --- desenhar o modelo
+          antes de escrever SQL.
+    \item \textbf{Relacionamento N:N} com tabela intermediária, e
+          \comando{JOIN} de três ou mais tabelas.
+    \item \textbf{Agregação avançada}: \comando{GROUP BY}, \comando{HAVING} e
+          subconsultas.
+    \item \textbf{Índices} --- por que uma consulta fica lenta e como
+          acelerá-la (\comando{EXPLAIN}).
+    \item \textbf{Transações} --- \comando{START TRANSACTION},
+          \comando{COMMIT}, \comando{ROLLBACK} e o conceito ACID.
+    \item \textbf{Integração com aplicação} --- conectar via linguagem
+          (Python, PHP, Node) e conhecer os ORMs.
+    \item \textbf{Backup e restauração} --- \comando{mysqldump}.
+\end{enumerate}
+
+\section{Onde praticar sem instalar nada}
+
+\begin{itemize}
+    \item \href{https://sqliteonline.com/}{SQLite Online} --- vários bancos direto no navegador
+    \item \href{https://www.db-fiddle.com/}{DB Fiddle} --- MySQL e PostgreSQL no navegador
+    \item \href{https://onecompiler.com/mysql/}{OneCompiler MySQL}
+    \item \href{https://sqlzoo.net/}{SQLZoo} e \href{https://sqlbolt.com/}{SQLBolt} --- exercícios interativos guiados
+    \item \href{https://www.hackerrank.com/domains/sql}{HackerRank SQL} --- desafios com correção automática
+\end{itemize}
+
+A documentação oficial do MySQL 8.4 \cite{mysql84} é a referência definitiva
+para qualquer dúvida de sintaxe.
+
+\section{Materiais desta capacitação}
+
+\begin{itemize}
+    \item \comando{docs/} --- este guia e a apresentação
+    \item \comando{materials/liga.sql} --- o script completo da aula, pronto
+          para colar no phpMyAdmin
+    \item \comando{infrastructure/} --- \comando{compose.yml},
+          \comando{.env.example} e os scripts de inicialização do banco
+\end{itemize}

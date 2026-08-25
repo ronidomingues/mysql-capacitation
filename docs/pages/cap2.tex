@@ -1,0 +1,157 @@
+\chapter{MySQL}
+
+\section{O que é o MySQL}
+
+O MySQL é um \textbf{SGBD relacional} de código aberto, criado em 1995 e hoje
+mantido pela Oracle. É o motor que armazena e gerencia os dados; a conversa com
+ele acontece em SQL.
+
+É provavelmente o banco relacional mais usado em aplicações web: WordPress,
+boa parte dos sistemas em PHP e uma infinidade de APIs rodam sobre ele. A
+versão usada nesta capacitação é a \textbf{8.4 LTS}, e o motor de armazenamento
+padrão é o \textbf{InnoDB}.
+
+\begin{conceito}[Por que o InnoDB importa]
+É o InnoDB que dá suporte a \textbf{chaves estrangeiras} e a \textbf{transações}.
+O motor antigo, MyISAM, não suporta chave estrangeira: ele aceita a declaração e
+a ignora silenciosamente. Como todo o Capítulo~\ref{cap:relacionamentos} depende
+de chave estrangeira, as tabelas deste guia são criadas com
+\comando{ENGINE=InnoDB} explícito.
+\end{conceito}
+
+\section{MySQL e MariaDB: a confusão mais comum}
+
+\begin{table}[H]
+\centering
+\caption{Comparação entre MySQL e MariaDB}
+\label{tab:mysql-mariadb}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+ & \textbf{MySQL} & \textbf{MariaDB} \\
+\midrule
+Origem & Original, de 1995 & \emph{Fork} de 2009, feito pelos criadores do
+MySQL após a compra pela Oracle \\
+\addlinespace
+Licença da edição livre & \emph{Community Edition}: GPLv2, gratuita &
+\emph{Server}: GPLv2, gratuita \\
+\addlinespace
+Edições pagas & Sim (\emph{Standard} e \emph{Enterprise}, da Oracle) &
+Sim (suporte e produtos da MariaDB plc) \\
+\addlinespace
+Compatibilidade & \multicolumn{2}{X@{}}{Altíssima nos comandos básicos: tudo
+desta capacitação funciona igual nos dois} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{aviso}[Correção de um erro comum]
+Dizer que ``MariaDB é livre e MySQL é comercial'' é impreciso. \textbf{Ambos têm
+uma edição livre em GPLv2 e ambos têm ofertas comerciais.} A diferença que
+interessa agora é outra: várias distribuições Linux (Debian, Ubuntu, Fedora,
+RHEL) empacotam o \textbf{MariaDB} como padrão nos repositórios oficiais, e o
+XAMPP também entrega MariaDB. Para instalar o MySQL da Oracle
+especificamente, é preciso adicionar o repositório oficial do MySQL ou usar
+Docker.
+
+Para o conteúdo desta capacitação, \textbf{tanto faz}: se o seu ambiente for
+MariaDB, siga normalmente.
+\end{aviso}
+
+\section{Como executar o MySQL}
+
+Existem três caminhos. Escolha apenas um.
+
+\subsection{Opção A: pacote tudo-em-um}
+
+Instala servidor web, PHP, banco e phpMyAdmin de uma vez só. É o caminho mais
+fácil para quem está começando.
+
+\begin{itemize}
+    \item \href{https://www.apachefriends.org/}{\textbf{XAMPP}} --- Windows,
+          Linux e macOS. É o mais popular. A sigla é \textbf{X}
+          (\emph{cross-platform}) + \textbf{A}pache + \textbf{M}ariaDB +
+          \textbf{P}HP + \textbf{P}erl. Em versões antigas o ``M'' era MySQL;
+          hoje é MariaDB.
+    \item \href{https://www.wampserver.com/}{\textbf{WampServer}} --- apenas
+          Windows. Aí sim: \textbf{W}indows + \textbf{A}pache + \textbf{M}ySQL
+          + \textbf{P}HP.
+    \item \href{https://laragon.org/}{\textbf{Laragon}} --- apenas Windows,
+          alternativa mais leve e moderna.
+\end{itemize}
+
+\begin{dica}[Conflito de portas]
+Se o MySQL não subir, quase sempre há outro serviço ocupando a porta 3306
+(outra instalação de MySQL, ou o SQL Server). A solução é mudar a porta no
+\comando{my.ini} ou \comando{my.cnf} (\comando{port=3307}) e informar essa
+porta no cliente.
+\end{dica}
+
+\subsection{Opção B: instalação nativa do servidor}
+
+\begin{itemize}
+    \item \textbf{Windows:} \emph{MySQL Installer for Windows}, no site oficial.
+    \item \textbf{macOS:} \comando{brew install mysql} (Homebrew) ou o
+          \comando{.dmg} oficial.
+    \item \textbf{Linux (Debian/Ubuntu):} \comando{sudo apt install mysql-server}.
+          Atenção: em várias distribuições esse pacote resolve para MariaDB.
+          Para o MySQL da Oracle, adicione antes o repositório APT oficial.
+\end{itemize}
+
+Depois de instalar, execute \comando{sudo mysql\_secure\_installation} para
+definir a senha do usuário \comando{root}.
+
+\subsection{Opção C: Docker}
+
+\begin{aviso}[Aviso de escopo]
+Docker \textbf{não} faz parte desta capacitação. Está aqui apenas para
+documentar como o ambiente da aula foi montado e para estimular quem quiser
+pesquisar depois. Os arquivos prontos estão na pasta \comando{infrastructure/}
+do repositório.
+\end{aviso}
+
+O arquivo de orquestração é um \comando{compose.yml}, que é \textbf{diferente
+de um \comando{Dockerfile}}: o \comando{Dockerfile} descreve \emph{como
+construir uma imagem}; o \comando{compose.yml} descreve \emph{quais serviços
+prontos subir e como conectá-los}. Como aqui só usamos imagens prontas, só
+existe \comando{compose.yml}.
+
+\begin{bashcode}[caption={Subindo o ambiente},label={lst:compose-up}]
+cd infrastructure
+cp .env.example .env      # preencha MYSQL_ROOT_PASSWORD
+docker compose up -d      # sobe MySQL + phpMyAdmin em segundo plano
+docker compose ps         # confere se estao de pe e saudaveis
+\end{bashcode}
+
+\begin{bashcode}[caption={Derrubando o ambiente},label={lst:compose-down}]
+docker compose down       # para os containers, PRESERVA os dados
+docker compose down -v    # para e APAGA o volume (perde tudo)
+\end{bashcode}
+
+\begin{dica}[\comando{docker compose}, sem hífen]
+O comando correto é \comando{docker compose} (versão 2, um plugin do Docker).
+O antigo \comando{docker-compose} com hífen é a versão 1, descontinuada
+desde 2023.
+\end{dica}
+
+A área dos alunos é preparada por um script que roda automaticamente na
+primeira subida do container:
+
+\begin{sqlcode}[caption={infrastructure/init/01\_create\_databases.sql (trecho)},label={lst:init}]
+-- Banco de demonstracao do instrutor: so o root tem acesso.
+CREATE DATABASE IF NOT EXISTS cap CHARACTER SET utf8mb4;
+
+-- Area dos alunos. O GRANT abaixo e sobre um PADRAO de nome, nao sobre
+-- um banco que ja exista: `_` e `%` sao curingas em GRANT, por isso o
+-- underscore literal precisa do escape `\_`.
+-- Resultado: 'aluno' pode criar e administrar liga_ana, liga_bruno, ...
+-- e nenhum outro banco.
+GRANT ALL PRIVILEGES ON `liga\_%`.* TO 'aluno'@'%';
+FLUSH PRIVILEGES;
+\end{sqlcode}
+
+\begin{aviso}[Scripts de \emph{init} rodam uma única vez]
+Os arquivos em \comando{init/} são executados apenas na primeira subida, com o
+volume de dados vazio. Se você editar um deles depois, é preciso zerar o volume
+para reaplicar: \comando{docker compose down -v \&\& docker compose up -d}.
+\end{aviso}
