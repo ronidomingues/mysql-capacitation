@@ -1,0 +1,70 @@
+# ============================================================
+# compose.yml — ambiente da capacitação de MySQL
+# ============================================================
+#   docker compose up -d                    # MySQL + phpMyAdmin (uso local)
+#   docker compose --profile tunnel up -d   # o mesmo + túnel ngrok público
+#   docker compose down                     # para tudo, PRESERVA os dados
+#   docker compose down -v                  # para tudo e APAGA o volume
+# ============================================================
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-capacitation
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: America/Sao_Paulo
+    ports:
+      # Porta do SGBD no seu host, para clientes desktop (DBeaver, Workbench).
+      # O ngrok NÃO expõe esta porta — ele só publica o phpMyAdmin.
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Scripts de inicialização: rodam UMA VEZ, com o volume vazio.
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: phpmyadmin-capacitation
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+      # Impede que alguém use esta instância para se conectar a QUALQUER
+      # servidor MySQL da internet. Relevante porque a página fica pública.
+      PMA_ARBITRARY: 0
+      # Preenchido só se os links quebrarem atrás do ngrok (ver ngrok/README.md).
+      PMA_ABSOLUTE_URI: ${PMA_ABSOLUTE_URI}
+    ports:
+      - "${PHPMYADMIN_PORT}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ----------------------------------------------------------
+  # Túnel público. NÃO sobe por padrão — só com:
+  #     docker compose --profile tunnel up -d
+  # ----------------------------------------------------------
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-capacitation
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    # Publica o phpMyAdmin (porta 80 DENTRO da rede do compose).
+    command: ["http", "phpmyadmin:80", "--log", "stdout"]
+    depends_on:
+      - phpmyadmin
+
+volumes:
+  mysql_data:
