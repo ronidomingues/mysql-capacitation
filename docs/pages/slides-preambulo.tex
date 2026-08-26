@@ -64,8 +64,10 @@
 }
 
 % ====== Marca d'água nos slides de conteúdo ======
+% Frames 1 a 3 (capa, apresentação do ministrante e "o trato de hoje")
+% ficam sem a marca: o retrato circular do slide 2 brigaria com ela.
 \addtobeamertemplate{background}{
-  \ifnum\insertframenumber>2
+  \ifnum\insertframenumber>3
     \ifnum\insertframenumber<\inserttotalframenumber
       \begin{tikzpicture}[remember picture, overlay]
         \node[anchor=center, opacity=0.30] at ([xshift=4cm, yshift=-2.3cm]current page.center) {
