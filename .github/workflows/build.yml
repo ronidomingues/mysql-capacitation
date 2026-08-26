@@ -58,6 +58,12 @@ jobs:
       #   texlive-latex-extra     -> tcolorbox, listings, multirow
       #   texlive-lang-portuguese -> hifenização pt-BR
       #   fonts-lmodern           -> monoespaçada dos blocos de código
+      #   texlive-fonts-recommended -> fornece pzdr.tfm (URW ZapfDingbats).
+      #   O hyperref (carregado pelo beamer) usa essa fonte internamente
+      #   via \XeTeXLink@font para montar a appearance stream dos links
+      #   em PDF, mesmo que o documento não use dingbats visíveis. Sem
+      #   este pacote, o --no-install-recommends corta essa dependência
+      #   transitiva e o xelatex falha com "Font ... pzdr ... not loadable".
       - name: Instalar LaTeX
         run: |
           sudo apt-get update
@@ -71,6 +77,7 @@ jobs:
             texlive-xetex \
             texlive-lang-portuguese \
             fonts-lmodern \
+            texlive-fonts-recommended \
             latexmk
 
       # ------------------------------------------------------------
