@@ -57,6 +57,7 @@ id_rsa*
 *.xdv
 *.upa
 *.upb
+*.synctex(busy)
 arara.log
 
 # Beamer (slides)
@@ -100,3 +101,8 @@ venv/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ==============================================================
+# 2. LaTeX — arquivos que são buildados na nuvem
+# ==============================================================
+./docs/*.pdf
