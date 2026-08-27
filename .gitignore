@@ -13,8 +13,8 @@
 # O .env guarda a senha do root do MySQL e o token do ngrok.
 # Este repositório é público: o que entrar aqui entra para sempre
 # no histórico, mesmo que seja apagado num commit posterior.
-!.env
-!.env.*
+.env
+.env.*
 # O modelo SEM segredos, esse sim vai para o repositório:
 !.env.example
 
