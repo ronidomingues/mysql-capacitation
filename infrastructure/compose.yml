@@ -63,6 +63,8 @@ services:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
     # Publica o phpMyAdmin (porta 80 DENTRO da rede do compose).
     command: ["http", "phpmyadmin:80", "--log", "stdout"]
+    ports:
+      - "${NGROK_PORT}:4040"
     depends_on:
       - phpmyadmin
 
