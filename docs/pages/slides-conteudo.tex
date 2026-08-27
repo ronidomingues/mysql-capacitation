@@ -5,6 +5,69 @@
 % relógio acumulado. Compile apresentacao_notes.tex para vê-las.
 % ======================================================================
 
+% =========================== REDES SOCIAIS ===================================
+\begin{frame}[plain]
+  \vspace{2em}
+  \includegraphics[width=0.18\linewidth]{./assets/logos/for_code_para_fundo_escuro.png}
+
+  \vfill
+  \begin{center}
+    {\fontsize{22}{26}\selectfont \tit{Fique conectado}}
+
+    \vspace{1.8em}
+
+    \begin{columns}[c,onlytextwidth]
+
+      % ---- QR 1: Treinamento ----
+      \begin{column}{0.32\linewidth}
+        \begin{center}
+          \begin{tikzpicture}
+            \node[fill=darkpurple, inner sep=6pt, rounded corners=2pt]
+              {\qrcode[height=2.3cm, level=M]{https://www.db-fiddle.com/}};
+          \end{tikzpicture}
+
+          \vspace{0.99em}
+          {\lexendsemibold\footnotesize\textcolor{white}{Acesse para treinar}}\\[.15em]
+          {\lexendlight\scriptsize\textcolor{lightpurple}{db-fiddle.com/}}
+        \end{center}
+      \end{column}
+
+      % ---- QR 2: Material ----
+      \begin{column}{0.32\linewidth}
+        \begin{center}
+          \begin{tikzpicture}
+            \node[fill=darkpurple, inner sep=6pt, rounded corners=2pt]
+              {\qrcode[height=2.3cm, level=M]{https://andradasdev.github.io/sql/}};
+          \end{tikzpicture}
+
+          \vspace{0.6em}
+          {\lexendsemibold\footnotesize\textcolor{white}{Material da Capacitação}}\\[.15em]
+          {\lexendlight\scriptsize\textcolor{lightpurple}{andradasdev.github.io/sql/}}
+        \end{center}
+      \end{column}
+
+      % ---- QR 3: Redes sociais ----
+      \begin{column}{0.32\linewidth}
+        \begin{center}
+          \begin{tikzpicture}
+            \node[fill=darkpurple, inner sep=6pt, rounded corners=2pt]
+              {\qrcode[height=2.3cm, level=M]{https://www.instagram.com/forcodeufrj/}};
+          \end{tikzpicture}
+
+          \vspace{0.6em}
+          {\lexendsemibold\footnotesize\textcolor{white}{Siga a for\_code no Instagram}}\\[.15em]
+          {\lexendlight\scriptsize\textcolor{lightpurple}{instagram.com/forcodeufrj}}
+        \end{center}
+      \end{column}
+
+    \end{columns}
+  \end{center}
+  \vfill
+  \begin{flushright}
+    \textcolor{lightpurple}{\rule{0.3\linewidth}{3pt}}
+  \end{flushright}
+\end{frame}
+
 % ============================ CAPA ====================================
 \begin{frame}[plain]
   \vspace{2em}
@@ -18,8 +81,7 @@
     {\lexendlight\textcolor{white}{\large Fundamentos de banco de dados relacional}}
 
     \vspace{1.5em}
-    {\textcolor{lightpurple}{\insertauthor\ – \insertdate}} \\
-    \cd{Diretor de Projetos for\_code}
+    {\textcolor{lightpurple}{\insertauthor\ – \insertdate}}
   \end{center}
 
   \vfill
@@ -1085,7 +1147,7 @@ ORDER  BY total DESC;
   \vspace{0.8em}
   Ronivaldo D. Andrade \\
   \vspace{0.8em}
-  \today
+  27 de agosto de 2026
   }}}
 
   \begin{tikzpicture}[remember picture, overlay]
